@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.23"
+    application
 }
 
 group = "org.example"
@@ -18,4 +19,8 @@ tasks.test {
 }
 kotlin {
     jvmToolchain(20)
+}
+
+application {
+    mainClass = "org.example.MainKt" 
 }
