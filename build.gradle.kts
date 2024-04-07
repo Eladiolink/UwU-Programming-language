@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "org.example"
+group = "compiler"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -22,5 +22,5 @@ kotlin {
 }
 
 application {
-    mainClass = "org.example.MainKt" 
+    mainClass = "compiler.MainKt" 
 }
