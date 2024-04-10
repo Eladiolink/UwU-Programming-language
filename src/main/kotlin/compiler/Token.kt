@@ -1,4 +1,3 @@
-
 package compiler.token
 
 enum class TokenType {
@@ -11,9 +10,14 @@ enum class TokenType {
     PALAVRAS
 }
 
-data class Token(val type: TokenType, val value: UInt, val tokenStr: String, val filepath: String, val line: UInt) {
+data class Token(
+        val type: TokenType,
+        val value: Any,
+        val tokenStr: String,
+        val filepath: String,
+        val line: UInt
+) {
     fun getLineNumber(): UInt {
         return this.line
     }
 }
-
