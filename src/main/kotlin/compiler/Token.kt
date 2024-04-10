@@ -12,7 +12,7 @@ enum class TokenType {
 
 data class Token(
         val type: TokenType,
-        val value: Any,
+        val value: UInt,
         val tokenStr: String,
         val filepath: String,
         val line: UInt
