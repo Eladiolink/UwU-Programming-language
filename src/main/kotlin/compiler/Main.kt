@@ -2,5 +2,9 @@ package compiler
 
 
 fun main() {
-    println(compiler.lexer.run("teste"))
+    val table: compiler.symbolTable.SymbolTable = mutableListOf()
+    println("Tokens: ")
+    println(compiler.lexer.run("teste", table))
+    println("Table: ")
+    println(table)
 }
