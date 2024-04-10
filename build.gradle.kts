@@ -7,7 +7,7 @@ group = "compiler"
 
 version = "1.0-SNAPSHOT"
 
-val mainClassName = "MainKt"
+val mainClassName = "compiler.MainKt"
 
 repositories { mavenCentral() }
 
@@ -20,10 +20,10 @@ tasks.test { useJUnitPlatform() }
 
 kotlin { jvmToolchain(20) }
 
-application { mainClass = "compiler.MainKt" }
+application { mainClass = "$mainClassName" }
 
 tasks.withType<Jar> {
-    manifest { attributes("Main-Class" to "${project.group}.$mainClassName") }
+    manifest { attributes("Main-Class" to "$mainClassName") }
 
     from(sourceSets.main.get().output)
 
