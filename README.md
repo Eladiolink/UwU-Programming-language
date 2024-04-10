@@ -5,5 +5,5 @@
 $ ./gradlew build
 
 # To run
-$ ./gradlew run
+$./gradlew run --args="test.uwu"
 ```
