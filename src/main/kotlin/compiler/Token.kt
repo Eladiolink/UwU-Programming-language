@@ -12,6 +12,7 @@ enum class TokenType {
 
 data class Token(
         val type: TokenType,
+        val name: TokenName,
         val value: UInt,
         val tokenStr: String,
         val filepath: String,
@@ -65,8 +66,14 @@ enum class TokenName {
     RELACAO_DUPLA_EXCLAMACAO,
     //
     CARACTER_EM_BRANCO,
-    COMENTARIO,
-    PALAVRA,
+    COMENTARIO_EM_BLOCO,
+    COMENTARIO_EM_LINHA,
+    PALAVRA_INT,
+    PALAVRA_FLOAT,
+    PALAVRA_RATIONAL,
+    PALAVRA_CHAR,
+    PALAVRA_STRING
     IDENTIFICADOR,
-    LINHA_EM_BRANCO
+    LINHA_EM_BRANCO,
+    QUEBRA_DE_LINHA
 }
