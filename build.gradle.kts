@@ -12,7 +12,7 @@ val mainClassName = "compiler.MainKt"
 repositories { mavenCentral() }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.50")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 
@@ -23,6 +23,8 @@ kotlin { jvmToolchain(20) }
 application { mainClass = "$mainClassName" }
 
 tasks.withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     manifest { attributes("Main-Class" to "$mainClassName") }
 
     from(sourceSets.main.get().output)
