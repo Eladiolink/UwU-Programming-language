@@ -67,5 +67,6 @@ enum class TokenName {
     CARACTER_EM_BRANCO,
     COMENTARIO,
     PALAVRA,
-    IDENTIFICADOR
+    IDENTIFICADOR,
+    LINHA_EM_BRANCO
 }
