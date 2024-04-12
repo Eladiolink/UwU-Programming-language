@@ -11,12 +11,12 @@ enum class TokenType {
 }
 
 data class Token(
-        val type: TokenType,
-        val name: TokenName,
-        val value: UInt,
-        val tokenStr: String,
-        val filepath: String,
-        val line: UInt
+    val type: TokenType,
+    val name: TokenName,
+    val value: UInt,
+    val tokenStr: String,
+    val filepath: String,
+    val line: UInt
 ) {
     fun getLineNumber(): UInt {
         return this.line
@@ -72,7 +72,7 @@ enum class TokenName {
     PALAVRA_FLOAT,
     PALAVRA_RATIONAL,
     PALAVRA_CHAR,
-    PALAVRA_STRING
+    PALAVRA_STRING,
     IDENTIFICADOR,
     LINHA_EM_BRANCO,
     QUEBRA_DE_LINHA
