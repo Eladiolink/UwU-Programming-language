@@ -11,15 +11,14 @@ fun main(args: Array<String>) {
 
     if (resGetFile.isSuccess) {
         val program = resGetFile.getOrThrow()
-        println("\nArquivo do Programa:")
-        println(program)
+
         val table: compiler.symbolTable.SymbolTable = mutableListOf()
         val tokens = compiler.lexer.run(program, table)
 
         println("Tokens: ")
         if (tokens.isSuccess) {
             for (token in tokens.getOrThrow()) {
-                println("type: ${token.type}, value: '${token.tokenStr}'")
+                println("type: ${token.type}, value: '${token.tokenStr}', line: ${token.line}")
             }
         } else {
             exitErro(tokens.exceptionOrNull()?.message ?: "", -1)
@@ -30,7 +29,6 @@ fun main(args: Array<String>) {
         val excecao = resGetFile.exceptionOrNull()
         exitErro("Erro ao ler o programa:\n$excecao\n", -1)
     }
-
 }
 
 fun getFile(path: String): Result<String> {
@@ -48,4 +46,3 @@ fun exitErro(message: String, valueErro: Int) {
     println(message)
     exitProcess(valueErro)
 }
-
