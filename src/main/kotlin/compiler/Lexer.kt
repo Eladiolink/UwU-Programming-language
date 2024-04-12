@@ -18,7 +18,6 @@ fun run(text: String, table: SymbolTable): Result<List<Token>> {
 
             if (lineCount > lineTotal) break
 
-            print("Token: $tokenStr")
             // TODO: Trocar RESERVADA_CHAR pelo nome do token, trocar 0u pela posição na tabela de
             // simbolos
             // TODO: Popular tabela de simbolo
@@ -35,11 +34,13 @@ fun matchToken(text: String): Result<Triple<TokenType, String, String>> {
             Regex("char|string|int|float|rational|program|if|else|while|input|print|return")
     val regexes =
             listOf(
+                    TokenType.COMENTARIO to Regex("--.*\\n|-\\{(.*|\\n)*-\\}"),
                     TokenType.IDENTIFICADORES to Regex("[a-zA-Z]\\w+"),
                     // TODO: Suportar mais palavras. A regex abaixo suporta inteiro e char
-                    TokenType.PALAVRAS to Regex("-?\\d+|'[^']'"),
+                    TokenType.PALAVRAS to Regex("-?(\\d+)(\\.|\\|)(\\d+)|-?\\d+|'[^']'|\"[^\"]*\""),
+                    TokenType.RELACIONAIS to Regex("<=|<|>|>=|!=|!!"),
                     TokenType.SIMBOLOS to Regex("[,;()\\[\\]{}=+\\-*/%<>&|~!]"),
-                    TokenType.ESPACO to Regex("\\s+")
+                    TokenType.ESPACO to Regex("\\s+"),
             )
     for ((type, reg) in regexes) {
         val match = reg.matchAt(text, 0)
