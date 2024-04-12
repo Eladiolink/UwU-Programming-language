@@ -15,7 +15,6 @@ data class Token(
     val name: TokenName,
     val value: UInt,
     val tokenStr: String,
-    val filepath: String,
     val line: UInt
 ) {
     fun getLineNumber(): UInt {
