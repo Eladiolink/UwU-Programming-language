@@ -22,11 +22,14 @@ fun run(text: String, table: SymbolTable): Result<List<Token>> {
             if (type in listOf(TokenType.IDENTIFICADORES, TokenType.PALAVRAS)) {
                 val entryType = getEntryType(tokenStr)
                 val lineTable = EntrySymbol(tokenStr, entryType)
-                if (lineTable !in table) {
+                val indexOf = table.indexOf(lineTable)
+                if (indexOf >= 0) {
+                    index = indexOf.toUInt()
+                } else {
+                    index = table.size.toUInt()
                     table.add(lineTable)
                 }
 
-                index = table.indexOf(lineTable).toUInt()
                 if (type == TokenType.PALAVRAS && entryType == ValueType.VALUE_STR) {
                     linesToAdd = tokenStr.count({ c: Char -> c == '\n'})
                 }
