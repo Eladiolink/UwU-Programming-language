@@ -19,7 +19,7 @@ fun main(args: Array<String>) {
         if (tokens.isSuccess) {
             for (token in tokens.getOrThrow()) {
                 println(
-                        "type: ${token.type}, value: '${token.tokenStr}, reference: ${token.value}, line: ${token.line}'"
+                        "type: ${token.type}, value: '${token.tokenStr}', reference: ${token.value}, line: ${token.line}"
                 )
             }
         } else {

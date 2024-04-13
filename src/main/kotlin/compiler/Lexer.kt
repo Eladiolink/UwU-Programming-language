@@ -67,7 +67,7 @@ fun matchToken(text: String): Result<Triple<TokenType, String, String>> {
                     TokenType.COMENTARIO to Regex("--.*\\n|-\\{(.*|\\n)*-\\}"),
                     TokenType.IDENTIFICADORES to Regex("[a-zA-Z]\\w+"),
                     TokenType.PALAVRAS to Regex("-?(\\d+)(\\.|\\|)(\\d+)|-?\\d+|'[^']'|\"[^\"]*\""),
-                    TokenType.RELACIONAIS to Regex("<=|<|>|>=|!=|!!"),
+                    TokenType.RELACIONAIS to Regex("<=|>=|<|>|!=|!!"),
                     TokenType.SIMBOLOS to Regex("[,;()\\[\\]{}=+\\-*/%<>&|~!]"),
                     TokenType.ESPACO to Regex("\\s+"),
             )
@@ -75,7 +75,7 @@ fun matchToken(text: String): Result<Triple<TokenType, String, String>> {
         val match = reg.matchAt(text, 0)
         if (match != null) {
             val rem = text.substring(match.range.endInclusive + 1)
-            if (type == TokenType.IDENTIFICADORES && reservadaReg.matchAt(text, 0) != null) {
+            if (type == TokenType.IDENTIFICADORES && reservadaReg.matches(match.value)) {
                 return Result.success(Triple(TokenType.RESERVADAS, match.value, rem))
             }
             return Result.success(Triple(type, match.value, rem))
