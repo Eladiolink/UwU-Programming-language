@@ -11,11 +11,11 @@ enum class TokenType {
 }
 
 data class Token(
-    val type: TokenType,
-    val name: TokenName,
-    val value: UInt,
-    val tokenStr: String,
-    val line: UInt
+        val type: TokenType,
+        val name: TokenName,
+        val value: UInt?,
+        val tokenStr: String,
+        val line: UInt
 ) {
     fun getLineNumber(): UInt {
         return this.line

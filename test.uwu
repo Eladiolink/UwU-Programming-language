@@ -1,3 +1,15 @@
-func xx(){
-  return 5+5+'a'
+-- Isso é um comentário
+-{
+    Isso é um comentário de bloco:
+    Mussum Ipsum, cacilds vidis litro abertis. 
+    Mé faiz elementum girarzis, nisi eros vermeio. 
+    Mais vale um bebadis conhecidiss, que um alcoolatra anonimis. 
+    Mauris nec dolor in eros commodo tempor. 
+    Aenean aliquam molestie leo, vitae iaculis nisl. 
+    Casamentiss faiz malandris se pirulitá.
+-}
+while xx(){
+  <= < > >= != !!
+  return 5+5+'a'+'-'+'1'+1.13+-1.13+23|12+-24|12
+  "Eu Odeio Python, mas amo o dinheiro do Data Science!\n uma máquina de turin é melhor que um celeron!"
 }
