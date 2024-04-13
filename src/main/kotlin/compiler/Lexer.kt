@@ -3,7 +3,10 @@ package compiler.lexer
 import compiler.symbolTable.*
 import compiler.token.*
 
+var running: Boolean = false
+
 fun run(text: String, table: SymbolTable): Result<List<Token>> {
+    running = true
     var tokens: MutableList<Token> = mutableListOf()
     var rem = text
     var lineCount = 1
@@ -41,7 +44,12 @@ fun run(text: String, table: SymbolTable): Result<List<Token>> {
             return Result.failure(result.exceptionOrNull() ?: Throwable())
         }
     }
+    running = false
     return Result.success(tokens)
+}
+
+fun isRunning(): Boolean {
+    return running
 }
 
 fun getEntryType(token: String): ValueType {
