@@ -3,52 +3,59 @@ package compiler.lexer
 import compiler.symbolTable.*
 import compiler.token.*
 
+var running: Boolean = false
+
 fun run(text: String, table: SymbolTable): Result<List<Token>> {
+    running = true
     var tokens: MutableList<Token> = mutableListOf()
     var rem = text
-    var lineTotal = contarCaracteresEspecificos(text, '\n')
-    var lineCount: Int
+    var lineCount = 1
 
     while (rem != "") {
         val result = matchToken(rem)
         if (result.isSuccess) {
             val (type, tokenStr, res) = result.getOrThrow()
+            var linesToAdd = 0
+            var index: UInt? = null
             rem = res
-            lineCount = (lineTotal - contarCaracteresEspecificos(rem, '\n')) + 1
-
-            if (lineCount > lineTotal) break
-
-            // TODO: Trocar RESERVADA_CHAR pelo nome do token, trocar 0u pela posição na tabela de
 
             if (type in listOf(TokenType.IDENTIFICADORES, TokenType.PALAVRAS)) {
-                val lineTable = EntrySymbol(tokenStr, entryType(tokenStr))
-                if (lineTable !in table) {
+                val entryType = getEntryType(tokenStr)
+                val lineTable = EntrySymbol(tokenStr, entryType)
+                val indexOf = table.indexOf(lineTable)
+                if (indexOf >= 0) {
+                    index = indexOf.toUInt()
+                } else {
+                    index = table.size.toUInt()
                     table.add(lineTable)
                 }
 
-                var index = table.indexOf(lineTable)
+                if (type == TokenType.PALAVRAS && entryType == ValueType.VALUE_STR) {
+                    linesToAdd = tokenStr.count({ c: Char -> c == '\n'})
+                }
 
-                tokens.add(
-                        Token(
-                                type,
-                                TokenName.RESERVADA_CHAR,
-                                index.toUInt(),
-                                tokenStr,
-                                lineCount.toUInt()
-                        )
-                )
-                continue
             }
+            if (type in listOf(TokenType.ESPACO, TokenType.COMENTARIO)) {
+                linesToAdd = tokenStr.count({ c: Char -> c == '\n'})
+            }
+            // TODO: Trocar RESERVADA_CHAR pelo nome do token
+            tokens.add(Token(type, TokenName.RESERVADA_CHAR, index, tokenStr, lineCount.toUInt()))
+            lineCount += linesToAdd
 
-            tokens.add(Token(type, TokenName.RESERVADA_CHAR, null, tokenStr, lineCount.toUInt()))
+
         } else {
             return Result.failure(result.exceptionOrNull() ?: Throwable())
         }
     }
+    running = false
     return Result.success(tokens)
 }
 
-fun entryType(token: String): ValueType {
+fun isRunning(): Boolean {
+    return running
+}
+
+fun getEntryType(token: String): ValueType {
     if (token.matches(Regex("[a-zA-Z]\\w+"))) return ValueType.VALUE_IDENTIFICADOR
 
     if (token.matches(Regex("-?(\\d+)(\\.)(\\d+)"))) return ValueType.VALUE_FLOAT
@@ -67,7 +74,7 @@ fun matchToken(text: String): Result<Triple<TokenType, String, String>> {
                     TokenType.COMENTARIO to Regex("--.*\\n|-\\{(.*|\\n)*-\\}"),
                     TokenType.IDENTIFICADORES to Regex("[a-zA-Z]\\w+"),
                     TokenType.PALAVRAS to Regex("-?(\\d+)(\\.|\\|)(\\d+)|-?\\d+|'[^']'|\"[^\"]*\""),
-                    TokenType.RELACIONAIS to Regex("<=|<|>|>=|!=|!!"),
+                    TokenType.RELACIONAIS to Regex("<=|>=|<|>|!=|!!"),
                     TokenType.SIMBOLOS to Regex("[,;()\\[\\]{}=+\\-*/%<>&|~!]"),
                     TokenType.ESPACO to Regex("\\s+"),
             )
@@ -75,7 +82,7 @@ fun matchToken(text: String): Result<Triple<TokenType, String, String>> {
         val match = reg.matchAt(text, 0)
         if (match != null) {
             val rem = text.substring(match.range.endInclusive + 1)
-            if (type == TokenType.IDENTIFICADORES && reservadaReg.matchAt(text, 0) != null) {
+            if (type == TokenType.IDENTIFICADORES && reservadaReg.matches(match.value)) {
                 return Result.success(Triple(TokenType.RESERVADAS, match.value, rem))
             }
             return Result.success(Triple(type, match.value, rem))
@@ -87,12 +94,3 @@ fun matchToken(text: String): Result<Triple<TokenType, String, String>> {
     return Result.failure(Throwable(msg))
 }
 
-fun contarCaracteresEspecificos(texto: String, caracterEspecifico: Char): Int {
-    var contador = 0
-    for (caracter in texto) {
-        if (caracter == caracterEspecifico) {
-            contador++
-        }
-    }
-    return contador
-}

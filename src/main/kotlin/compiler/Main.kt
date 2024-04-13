@@ -19,31 +19,29 @@ fun main(args: Array<String>) {
         if (tokens.isSuccess) {
             for (token in tokens.getOrThrow()) {
                 println(
-                        "type: ${token.type}, value: '${token.tokenStr}, reference: ${token.value}, line: ${token.line}'"
+                    "type: ${token.type}, value: '${token.tokenStr}', reference: ${token.reference}, line: ${token.getLineNumber()}"
                 )
             }
         } else {
             exitErro(tokens.exceptionOrNull()?.message ?: "", -1)
         }
         println("Table: ")
-        for (i in 0 until table.size) {
-            println(table[i])
+        for (entry in table) {
+            println(entry)
         }
+        println("Is running: ${compiler.lexer.isRunning()}")
     } else {
-        val excecao = resGetFile.exceptionOrNull()
-        exitErro("Erro ao ler o programa:\n$excecao\n", -1)
+        exitErro(resGetFile.exceptionOrNull()?.message ?: "", -1)
     }
 }
 
 fun getFile(path: String): Result<String> {
-    return runCatching {
-        val arquivo = File(path)
-
-        if (!arquivo.exists()) {
-            throw IllegalArgumentException("Arquivo não encontrado: $path")
-        }
-        arquivo.readText()
+    val arquivo = File(path)
+    if (!arquivo.exists()) {
+        return Result.failure(IllegalArgumentException("Arquivo não encontrado: $path"))
     }
+    return Result.success(arquivo.readText())
+
 }
 
 fun exitErro(message: String, valueErro: Int) {

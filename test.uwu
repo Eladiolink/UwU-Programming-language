@@ -10,6 +10,9 @@
 -}
 while xx(){
   <= < > >= != !!
+  printei
   return 5+5+'a'+'-'+'1'+1.13+-1.13+23|12+-24|12
-  "Eu Odeio Python, mas amo o dinheiro do Data Science!\n uma máquina de turin é melhor que um celeron!"
+  "Eu Odeio Java, e ainda sou obrigado a utilizar um dos seus filhos bastardos, Kotlin!
+
+  uma máquina de turin é melhor que um celeron!"
 }
