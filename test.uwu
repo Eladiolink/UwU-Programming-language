@@ -8,7 +8,7 @@
     Aenean aliquam molestie leo, vitae iaculis nisl. 
     Casamentiss faiz malandris se pirulitá.
 -}
-func xx(){
+while xx(){
   <= < > >= != !!
   return 5+5+'a'+'-'+'1'+1.13+-1.13+23|12+-24|12
   "Eu Odeio Python, mas amo o dinheiro do Data Science!\n uma máquina de turin é melhor que um celeron!"

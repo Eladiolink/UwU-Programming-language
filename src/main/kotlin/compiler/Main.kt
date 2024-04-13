@@ -18,13 +18,17 @@ fun main(args: Array<String>) {
         println("Tokens: ")
         if (tokens.isSuccess) {
             for (token in tokens.getOrThrow()) {
-                println("type: ${token.type}, value: '${token.tokenStr}', line: ${token.line}")
+                println(
+                        "type: ${token.type}, value: '${token.tokenStr}, reference: ${token.value}, line: ${token.line}'"
+                )
             }
         } else {
             exitErro(tokens.exceptionOrNull()?.message ?: "", -1)
         }
         println("Table: ")
-        println(table)
+        for (i in 0 until table.size) {
+            println(table[i])
+        }
     } else {
         val excecao = resGetFile.exceptionOrNull()
         exitErro("Erro ao ler o programa:\n$excecao\n", -1)
