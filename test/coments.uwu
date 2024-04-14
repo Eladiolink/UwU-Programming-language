@@ -1,4 +1,5 @@
--- Isso é um comentário
+-- Este é um comentário de uma linha
+
 -{
     Isso é um comentário de bloco:
     Mussum Ipsum, cacilds vidis litro abertis. 
@@ -8,11 +9,3 @@
     Aenean aliquam molestie leo, vitae iaculis nisl. 
     Casamentiss faiz malandris se pirulitá.
 -}
-while xx(){
-  <= < > >= != !!
-  printei
-  return 5+5+'a'+'-'+'1'+1.13+-1.13+23|12+-24|12
-  "Eu Odeio Java, e ainda sou obrigado a utilizar um dos seus filhos bastardos, Kotlin!
-
-  uma máquina de turin é melhor que um celeron!"
-}

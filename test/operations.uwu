@@ -1,0 +1,7 @@
+int a = 1
+int b = 5
+
+float c = a+b
+
+float d = 1|23
+
