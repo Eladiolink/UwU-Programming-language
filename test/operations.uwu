@@ -1,0 +1,8 @@
+while
+int n_one = 1
+int n_five = 5
+
+float sum = n_one + n_five
+
+rational rat = 1|23
+
