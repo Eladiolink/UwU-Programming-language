@@ -74,7 +74,7 @@ fun matchToken(text: String): Result<Triple<TokenType, String, String>> {
                     TokenType.COMENTARIO to Regex("--.*\\n|-\\{(.*|\\n)*-\\}"),
                     TokenType.IDENTIFICADORES to Regex("[a-zA-Z]\\w+"),
                     TokenType.PALAVRAS to Regex("-?(\\d+)(\\.|\\|)(\\d+)|-?\\d+|'[^']'|\"[^\"]*\""),
-                    TokenType.RELACIONAIS to Regex("<=|>=|<|>|!=|!!"),
+                    TokenType.RELACIONAIS to Regex("==|<=|>=|<|>|!=|!!"),
                     TokenType.SIMBOLOS to Regex("[,;()\\[\\]{}=+\\-*/%<>&|~!]"),
                     TokenType.ESPACO to Regex("\\s+"),
             )

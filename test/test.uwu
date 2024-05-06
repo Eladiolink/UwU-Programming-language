@@ -10,7 +10,7 @@
 -}
 
 while xx(){
-  <= < > >= != !!
+  == <= < > >= != !!
   printei
   return 5+5+'a'+'-'+'1'+1.13+-1.13+23|12+-24|12
   "Eu Odeio Java, e ainda sou obrigado a utilizar um dos seus filhos bastardos, Kotlin!
