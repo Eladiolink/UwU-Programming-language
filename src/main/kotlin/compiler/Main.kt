@@ -14,22 +14,14 @@ fun main(args: Array<String>) {
 
         val table: compiler.symbolTable.SymbolTable = mutableListOf()
         val tokens = compiler.lexer.run(program, table)
-
-        println("\n============= Tokens ===============\n")
         if (tokens.isSuccess) {
-            for (token in tokens.getOrThrow()) {
-                println(
-                        "type: ${token.type}, value: '${token.tokenStr}', reference: ${token.reference}, line: ${token.getLineNumber()}"
-                )
+            val result = compiler.parser.run(tokens.getOrThrow(), table)
+            if (!result.isSuccess) {
+                exitErro(result.exceptionOrNull()?.message ?: "", -1)
             }
         } else {
             exitErro(tokens.exceptionOrNull()?.message ?: "", -1)
         }
-        println("\n=============== Table of Simbols ================\n")
-        for (entry in table) {
-            println(entry)
-        }
-        println("\n\nIs running: ${compiler.lexer.isRunning()}")
     } else {
         exitErro(resGetFile.exceptionOrNull()?.message ?: "", -1)
     }
