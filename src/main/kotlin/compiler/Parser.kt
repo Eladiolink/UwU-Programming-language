@@ -31,6 +31,68 @@ data class ParserState(
     }
 }
 
+interface MatchParser {
+    fun match(state: ParserState): ParserState
+}
+
+class MatchString(val str: String): MatchParser {
+    override fun match(state: ParserState): ParserState {
+        if (!state.hasToken()) {
+            return state.errorNew(Throwable("É esperado o token $str, no entanto, o arquivo finalizou"))
+        }
+        val token = state.next()
+        if (token.tokenStr == str) {
+            return state.incNew()
+        } else {
+            return state.errorNew(Throwable("Na linha ${token.getLineNumber()} é esperado o token $str, ao invés de ${token.tokenStr}."))
+        }
+    }
+}
+
+class MatchStrings(val strs: List<String>): MatchParser {
+    override fun match(state: ParserState): ParserState {
+        var match_state = state
+        for (str in strs) {
+            val match_str = MatchString(str)
+            match_state = match_str.match(state)
+            if (match_state.success()) {
+                return match_state
+            }
+        }
+        return match_state
+    }
+}
+
+class MatchType(val type: TokenType): MatchParser {
+    override fun match(state: ParserState): ParserState {
+        if (!state.hasToken()) {
+            return state.errorNew(Throwable("É esperado token do tipo $type, no entanto, o arquivo finalizou"))
+        }
+        val token = state.next()
+        if (token.type == type) {
+            return state.incNew()
+        } else {
+            return state.errorNew(Throwable("Na linha ${token.getLineNumber()} é esperado token do tipo $type, ao invés de ${token.tokenStr}."))
+        }
+    }
+}
+
+class MatchFun(val func: (ParserState) -> ParserState): MatchParser {
+    override fun match(state: ParserState): ParserState {
+        return func(state)
+    }
+}
+
+fun checkMatches(matches: List<MatchParser>, state: ParserState): ParserState {
+    var s = state
+    for (match in matches) {
+        s = match.match(s)
+        if (!s.success()) {
+            return s
+        }
+    }
+    return s
+}
 
 fun run(tokens: List<Token>, table: SymbolTable): Result<Int> {
     val useful_tokens = tokens.filter { it.type != TokenType.ESPACO && it.type != TokenType.COMENTARIO }
@@ -46,66 +108,61 @@ fun run(tokens: List<Token>, table: SymbolTable): Result<Int> {
 }
 
 fun prog(state: ParserState): ParserState {
-    val only_prog = chainMatch(matchString(state, "program"), {
-        chainMatch(matchType(it, TokenType.IDENTIFICADORES), {
-            chainMatch(matchString(it, ";"), { endOfFile(it) })
-        })
-    })
-    if (only_prog.success()) {
-        return only_prog
+    val only_prog = listOf(MatchString("program"), MatchType(TokenType.IDENTIFICADORES), MatchString(";"), MatchFun(::endOfFile))
+    val only_prog_match = checkMatches(only_prog, state)
+    if (only_prog_match.success()) {
+        return only_prog_match
     }
-    val complete_prog = chainMatch(matchString(state, "program"), {
-        chainMatch(matchType(it, TokenType.IDENTIFICADORES), {
-            chainMatch(matchString(it, ";"), { args(it) })
-        })
-    })
-    if (complete_prog.success()) {
-        if (complete_prog.lookahead < complete_prog.tokens.size) {
+    val complete_prog = listOf(MatchString("program"), MatchType(TokenType.IDENTIFICADORES), MatchString(";"), MatchFun(::args))
+    val complete_prog_match = checkMatches(complete_prog, state)
+    if (complete_prog_match.success()) {
+        if (complete_prog_match.lookahead < complete_prog_match.tokens.size) {
             return state.errorNew(Throwable())
         } else {
-            return complete_prog
+            return complete_prog_match
         }
     } else {
-        return complete_prog
+        return complete_prog_match
     }
 }
 
 // DEC -> TYPE IDENT = PALAVRAS
 fun dec(state: ParserState): ParserState {
-    return chainMatch(type(state), {
-        chainMatch(matchType(it, TokenType.IDENTIFICADORES), {
-            chainMatch(matchString(it, "="), { matchType(it, TokenType.PALAVRAS) })
-        })
-    })
+    val matches = listOf(
+        MatchFun(::type),
+        MatchType(TokenType.IDENTIFICADORES),
+        MatchString("="),
+        MatchType(TokenType.PALAVRAS),
+    )
+    return checkMatches(matches, state)
 }
 
 // ARGS -> TYPE IDENT, ARGS | TYPE IDENT | LAMBDA
 fun args(state: ParserState): ParserState {
-    val list_args = chainMatch(type(state), {
-        chainMatch(matchType(it, TokenType.IDENTIFICADORES), {
-            chainMatch(matchString(it, ","),  { args(it) })
-        })
-    })
-    if (list_args.success()) {
-        return list_args
+    val list_args = listOf(MatchFun(::type), MatchType(TokenType.IDENTIFICADORES), MatchString(","), MatchFun(::args))
+    val list_args_match = checkMatches(list_args, state)
+    if (list_args_match.success()) {
+        return list_args_match
     }
-    val one_arg = chainMatch(type(state), { matchType(it, TokenType.IDENTIFICADORES) })
-    if (one_arg.success()) {
-        return one_arg
+    val one_arg = listOf(MatchFun(::type), MatchType(TokenType.IDENTIFICADORES))
+    val one_arg_match = checkMatches(one_arg, state)
+    if (one_arg_match.success()) {
+        return one_arg_match
     }
     return state
 }
 
 fun type(state: ParserState): ParserState {
-    val types = listOf("char", "int", "string", "rational", "float")
-    var type_match = state
-    for (type_str in types) {
-        type_match = matchString(state, type_str)
-        if (type_match.success()) {
-            return type_match
-        }
+    val match = MatchStrings(listOf("char", "int", "string", "rational", "float"))
+    val match_state = checkMatches(listOf(match), state)
+    if (match_state.success()) {
+        return match_state
     }
-    return type_match
+    if (!state.hasToken()) {
+        return state.errorNew(Throwable("É esperado o nome do tipo, no entanto, o arquivo finalizou"))
+    }
+    val token = state.next()
+    return state.errorNew(Throwable("Na linha ${token.getLineNumber()} é esperado o nome do tipo, ao invés de ${token.tokenStr}."))
 }
 
 fun endOfFile(state: ParserState): ParserState {
@@ -113,38 +170,6 @@ fun endOfFile(state: ParserState): ParserState {
         return state
     } else {
         return state.errorNew(Throwable())
-    }
-}
-
-fun matchString(state: ParserState, str: String): ParserState {
-    if (!state.hasToken()) {
-        return state.errorNew(Throwable("É esperado o token $str, no entanto, o arquivo finalizou"))
-    }
-    val token = state.next()
-    if (token.tokenStr == str) {
-        return state.incNew()
-    } else {
-        return state.errorNew(Throwable("Na linha ${token.getLineNumber()} é esperado o token $str, ao invés de ${token.tokenStr}."))
-    }
-}
-
-fun matchType(state: ParserState, type: TokenType): ParserState {
-    if (!state.hasToken()) {
-        return state.errorNew(Throwable("É esperado token do tipo $type, no entanto, o arquivo finalizou"))
-    }
-    val token = state.next()
-    if (token.type == type) {
-        return state.incNew()
-    } else {
-        return state.errorNew(Throwable("Na linha ${token.getLineNumber()} é esperado token do tipo $type, ao invés de ${token.tokenStr}."))
-    }
-}
-
-fun chainMatch(state: ParserState, success: (ParserState) -> ParserState): ParserState {
-    if (state.success()) {
-        return success(state)
-    } else {
-        return state
     }
 }
 
