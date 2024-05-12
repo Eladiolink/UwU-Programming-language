@@ -26,7 +26,7 @@ fun prog(state: ParserState): ParserState {
     if (only_prog_match.success()) {
         return only_prog_match
     }
-    val complete_prog = listOf(MatchString("program"), MatchType(TokenType.IDENTIFICADORES), MatchString(";"), MatchFun(::args))
+    val complete_prog = listOf(MatchString("program"), MatchType(TokenType.IDENTIFICADORES), MatchString(";"), MatchFun(::dec))
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
         if (complete_prog_match.lookahead < complete_prog_match.tokens.size) {
@@ -40,15 +40,28 @@ fun prog(state: ParserState): ParserState {
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
-// DEC -> TYPE IDENT = PALAVRAS
+// DEC -> TYPE IDENT = PALAVRAS | TYPE IDEN = IDENT ARI IDENT
 fun dec(state: ParserState): ParserState {
-    val matches = listOf(
+    val dec_word = listOf(
         MatchFun(::type),
         MatchType(TokenType.IDENTIFICADORES),
         MatchString("="),
         MatchType(TokenType.PALAVRAS),
     )
-    return checkMatches(matches, state)
+    val dec_word_match = checkMatches(dec_word, state)
+    if (dec_word_match.success()) {
+        return dec_word_match
+    }
+    val dec_ari = listOf(
+        MatchFun(::type),
+        MatchType(TokenType.IDENTIFICADORES),
+        MatchString("="),
+        MatchType(TokenType.IDENTIFICADORES),
+        MatchFun(::ari),
+        MatchType(TokenType.IDENTIFICADORES),
+    )
+    val dec_ari_match = checkMatches(dec_ari, state)
+    return dec_ari_match
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -90,3 +103,17 @@ fun endOfFile(state: ParserState): ParserState {
     }
 }
 
+// DEFINIÇÃO DE PRODUÇÃO
+// ARI -> + | - | * | / | | | %
+fun ari(state: ParserState): ParserState {
+    val match = MatchStrings(listOf("+", "-", "*", "/", "|", "%"))
+    val match_state = checkMatches(listOf(match), state)
+    if (match_state.success()) {
+        return match_state
+    }
+    if (!state.hasToken()) {
+        return state.errorNew(Throwable("É esperado operador aritmético, no entanto, o arquivo finalizou"))
+    }
+    val token = state.next()
+    return state.errorNew(Throwable("Na linha ${token.getLineNumber()} é esperado operador aritmético, ao invés de ${token.tokenStr}."))
+}
