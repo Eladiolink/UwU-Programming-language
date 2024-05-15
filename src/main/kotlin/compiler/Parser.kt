@@ -3,6 +3,7 @@ package compiler.parser
 import compiler.parserTools.*
 import compiler.symbolTable.*
 import compiler.token.*
+import kotlin.io.println
 
 fun run(tokens: List<Token>, table: SymbolTable): Result<Int> {
     val useful_tokens =
@@ -37,7 +38,7 @@ fun prog(state: ParserState): ParserState {
                     MatchString("program"),
                     MatchType(TokenType.IDENTIFICADORES),
                     MatchString(";"),
-                    MatchFun(::op)
+                    MatchFun(::rel)
             )
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
@@ -166,10 +167,56 @@ fun op(state: ParserState): ParserState {
 // DEFINIÇÃO DE PRODUÇÃO
 // <REL> -> <WORD> | <ID> | (<REL>) | <WORD><REL>' | <ID><REL>' | (<REL>)<REL>'
 fun rel(state: ParserState): ParserState {
+    // CASO RECURSIVO
+
+    val list_word_recursive = listOf(MatchType(TokenType.PALAVRAS), MatchFun(::rel_line))
+    val list_word_recursive_match = checkMatches(list_word_recursive, state)
+
+    if (list_word_recursive_match.success()) {
+        return list_word_recursive_match
+    }
+    val list_line_id = listOf(MatchType(TokenType.IDENTIFICADORES), MatchFun(::rel_line))
+    val list_line_id_match = checkMatches(list_line_id, state)
+
+    if (list_line_id_match.success()) {
+        return list_line_id_match
+    }
+
+    val list_rel_parentese_recursive =
+            listOf(MatchString("("), MatchFun(::rel), MatchString(")"), MatchFun(::rel_line))
+    val list_rel_parentese_recursive_match = checkMatches(list_rel_parentese_recursive, state)
+
+    if (list_rel_parentese_recursive_match.success()) {
+        return list_rel_parentese_recursive_match
+    }
+    // NÃO RECURSIVO
+
+    val list_word = listOf(MatchType(TokenType.PALAVRAS))
+    val list_word_match = checkMatches(list_word, state)
+
+    if (list_word_match.success()) {
+        return list_word_match
+    }
+
+    val list_id = listOf(MatchType(TokenType.IDENTIFICADORES))
+    val list_id_match = checkMatches(list_id, state)
+
+    if (list_id_match.success()) {
+        return list_id_match
+    }
+
+    val list_rel_parentese = listOf(MatchString("("), MatchFun(::rel), MatchString(")"))
+    val list_rel_parentese_match = checkMatches(list_rel_parentese, state)
+
+    if (list_rel_parentese_match.success()) {
+        return list_rel_parentese_match
+    }
 
     if (!state.hasToken()) {
         return state.errorNew(
-                Throwable("É esperado operador aritmético, no entanto, o arquivo finalizou")
+                Throwable(
+                        "É esperado uma operação de relação válida, no entanto, o arquivo finalizou"
+                )
         )
     }
     val token = state.next()
@@ -184,17 +231,20 @@ fun rel(state: ParserState): ParserState {
 // <REL>' -> <OP><REL> | <OP><REL><REL>'
 fun rel_line(state: ParserState): ParserState {
 
-    if (!state.hasToken()) {
-        return state.errorNew(
-                Throwable("É esperado operador aritmético, no entanto, o arquivo finalizou")
-        )
+    val list_op_recursive = listOf(MatchFun(::op), MatchFun(::rel), MatchFun(::rel_line))
+    val list_op_recursive_match = checkMatches(list_op_recursive, state)
+
+    if (list_op_recursive_match.success()) {
+        return list_op_recursive_match
     }
-    val token = state.next()
-    return state.errorNew(
-            Throwable(
-                    "Na linha ${token.getLineNumber()} é esperado operador aritmético, ao invés de ${token.tokenStr}."
-            )
-    )
+
+    val list_op = listOf(MatchFun(::op), MatchFun(::rel))
+    val list_op_match = checkMatches(list_op, state)
+
+    if (list_op_match.success()) {
+        return list_op_match
+    }
+    return returnByState(state)
 }
 
 fun returnByState(state: ParserState): ParserState {
