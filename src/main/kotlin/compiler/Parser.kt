@@ -38,7 +38,7 @@ fun prog(state: ParserState): ParserState {
                     MatchString("program"),
                     MatchType(TokenType.IDENTIFICADORES),
                     MatchString(";"),
-                    MatchFun(::rel)
+                    MatchFun(::ret)
             )
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
@@ -245,6 +245,49 @@ fun rel_line(state: ParserState): ParserState {
         return list_op_match
     }
     return returnByState(state)
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// CALL -> IDENT() | IDENT(LID)
+fun call(state: ParserState): ParserState {
+    val no_arg_call =
+            listOf(MatchType(TokenType.IDENTIFICADORES), MatchString("("), MatchString(")"))
+    val no_arg_match = checkMatches(no_arg_call, state)
+    if (no_arg_match.success()) {
+        return no_arg_match
+    }
+    val args_call =
+            listOf(
+                    MatchType(TokenType.IDENTIFICADORES),
+                    MatchString("("),
+                    MatchFun(::lid),
+                    MatchString(")")
+            )
+    return checkMatches(args_call, state)
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// LID -> IDENT | IDENT,LID
+fun lid(state: ParserState): ParserState {
+    val idents = listOf(MatchType(TokenType.IDENTIFICADORES), MatchString(","), MatchFun(::lid))
+    val idents_match = checkMatches(idents, state)
+    if (idents_match.success()) {
+        return idents_match
+    }
+    val one_ident = MatchType(TokenType.IDENTIFICADORES).match(state)
+    return one_ident
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// RET -> RETURN IDENT | RETURN WORD
+fun ret(state: ParserState): ParserState {
+    return checkMatches(
+            listOf(
+                    MatchString("return"),
+                    MatchOr(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS))
+            ),
+            state
+    )
 }
 
 fun returnByState(state: ParserState): ParserState {
