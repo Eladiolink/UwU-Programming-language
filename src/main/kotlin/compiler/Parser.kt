@@ -37,7 +37,7 @@ fun prog(state: ParserState): ParserState {
                     MatchString("program"),
                     MatchType(TokenType.IDENTIFICADORES),
                     MatchString(";"),
-                    MatchFun(::op)
+                    MatchFun(::call)
             )
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
@@ -195,6 +195,30 @@ fun rel_line(state: ParserState): ParserState {
                     "Na linha ${token.getLineNumber()} é esperado operador aritmético, ao invés de ${token.tokenStr}."
             )
     )
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// CALL -> IDENT() | IDENT(LID)
+fun call(state: ParserState): ParserState {
+    val no_arg_call = listOf(MatchType(TokenType.IDENTIFICADORES), MatchString("("), MatchString(")"))
+    val no_arg_match = checkMatches(no_arg_call, state)
+    if (no_arg_match.success()) {
+        return no_arg_match
+    }
+    val args_call = listOf(MatchType(TokenType.IDENTIFICADORES), MatchString("("), MatchFun(::lid), MatchString(")"))
+    return checkMatches(args_call, state)
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// LID -> IDENT | IDENT,LID
+fun lid(state: ParserState): ParserState {
+    val idents = listOf(MatchType(TokenType.IDENTIFICADORES), MatchString(","), MatchFun(::lid))
+    val idents_match = checkMatches(idents, state)
+    if (idents_match.success()) {
+        return idents_match
+    }
+    val one_ident = MatchType(TokenType.IDENTIFICADORES).match(state)
+    return one_ident
 }
 
 fun returnByState(state: ParserState): ParserState {
