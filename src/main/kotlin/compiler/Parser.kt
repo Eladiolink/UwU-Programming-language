@@ -37,7 +37,7 @@ fun prog(state: ParserState): ParserState {
                     MatchString("program"),
                     MatchType(TokenType.IDENTIFICADORES),
                     MatchString(";"),
-                    MatchFun(::ret)
+                    MatchFun(::loop)
             )
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
@@ -200,12 +200,19 @@ fun rel_line(state: ParserState): ParserState {
 // DEFINIÇÃO DE PRODUÇÃO
 // CALL -> IDENT() | IDENT(LID)
 fun call(state: ParserState): ParserState {
-    val no_arg_call = listOf(MatchType(TokenType.IDENTIFICADORES), MatchString("("), MatchString(")"))
+    val no_arg_call =
+            listOf(MatchType(TokenType.IDENTIFICADORES), MatchString("("), MatchString(")"))
     val no_arg_match = checkMatches(no_arg_call, state)
     if (no_arg_match.success()) {
         return no_arg_match
     }
-    val args_call = listOf(MatchType(TokenType.IDENTIFICADORES), MatchString("("), MatchFun(::lid), MatchString(")"))
+    val args_call =
+            listOf(
+                    MatchType(TokenType.IDENTIFICADORES),
+                    MatchString("("),
+                    MatchFun(::lid),
+                    MatchString(")")
+            )
     return checkMatches(args_call, state)
 }
 
@@ -224,10 +231,41 @@ fun lid(state: ParserState): ParserState {
 // DEFINIÇÃO DE PRODUÇÃO
 // RET -> RETURN IDENT | RETURN WORD
 fun ret(state: ParserState): ParserState {
-    return checkMatches(listOf(
-        MatchString("return"),
-        MatchOr(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS))
-    ), state)
+    return checkMatches(
+            listOf(
+                    MatchString("return"),
+                    MatchOr(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS))
+            ),
+            state
+    )
+}
+
+// DEFINIÇÃO
+// <LISTC> -> <CMD> | <CMD><LISTC>
+fun listc(state: ParserState): ParserState {
+    return state
+    return returnByState(state)
+}
+
+// DEFINIÇÃO
+// <LOOP> -> while(<REL>){<LISTC>}
+fun loop(state: ParserState): ParserState {
+
+    val list_while =
+            listOf(
+                    MatchString("while"),
+                    MatchString("("),
+                    MatchString(")"),
+                    MatchString("{"),
+                    MatchFun(::listc),
+                    MatchString("}")
+            )
+    val list_while_match = checkMatches(list_while, state)
+    if (list_while_match.success()) {
+        return list_while_match
+    }
+
+    return returnByState(state)
 }
 
 fun returnByState(state: ParserState): ParserState {
