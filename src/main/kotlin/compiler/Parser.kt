@@ -38,7 +38,7 @@ fun prog(state: ParserState): ParserState {
                     MatchString("program"),
                     MatchType(TokenType.IDENTIFICADORES),
                     MatchString(";"),
-                    MatchFun(::IF)
+                    MatchFun(::if_stmt)
             )
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
@@ -278,13 +278,13 @@ fun ret(state: ParserState): ParserState {
     )
 }
 
-// DEFINIÇÃO
+// DEFINIÇÃO DE PRODUÇÃO
 // <LISTC> -> <CMD> | <CMD><LISTC>
 fun listc(state: ParserState): ParserState {
     return state
 }
 
-// DEFINIÇÃO
+// DEFINIÇÃO DE PRODUÇÃO
 // <LOOP> -> while(<REL>){<LISTC>}
 fun loop(state: ParserState): ParserState {
 
@@ -306,7 +306,9 @@ fun loop(state: ParserState): ParserState {
     return returnByState(state)
 }
 
-fun IF(state: ParserState): ParserState {
+// DEFINIÇÃO DE PRODUÇÃO
+// IF -> if(<REL>){<LISTC>} | if(<REL>){<LISTC>}else{<LISTC>}
+fun if_stmt(state: ParserState): ParserState {
     val list_if_else =
             listOf(
                     MatchString("if"),
