@@ -38,7 +38,7 @@ fun prog(state: ParserState): ParserState {
                     MatchString("program"),
                     MatchType(TokenType.IDENTIFICADORES),
                     MatchString(";"),
-                    MatchFun(::loop)
+                    MatchFun(::IF)
             )
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
@@ -314,6 +314,44 @@ fun loop(state: ParserState): ParserState {
     val list_while_match = checkMatches(list_while, state)
     if (list_while_match.success()) {
         return list_while_match
+    }
+
+    return returnByState(state)
+}
+
+fun IF(state: ParserState): ParserState {
+    val list_if_else =
+            listOf(
+                    MatchString("if"),
+                    MatchString("("),
+                    MatchFun(::rel),
+                    MatchString(")"),
+                    MatchString("{"),
+                    MatchFun(::listc),
+                    MatchString("}"),
+                    MatchString("else"),
+                    MatchString("{"),
+                    MatchFun(::listc),
+                    MatchString("}")
+            )
+    val list_if_else_match = checkMatches(list_if_else, state)
+    if (list_if_else_match.success()) {
+        return list_if_else_match
+    }
+
+    val list_if =
+            listOf(
+                    MatchString("if"),
+                    MatchString("("),
+                    MatchFun(::rel),
+                    MatchString(")"),
+                    MatchString("{"),
+                    MatchFun(::listc),
+                    MatchString("}")
+            )
+    val list_if_match = checkMatches(list_if, state)
+    if (list_if_match.success()) {
+        return list_if_match
     }
 
     return returnByState(state)
