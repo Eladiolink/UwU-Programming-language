@@ -168,18 +168,13 @@ fun op(state: ParserState): ParserState {
 // <REL> -> <WORD> | <ID> | (<REL>) | <WORD><REL>' | <ID><REL>' | (<REL>)<REL>'
 fun rel(state: ParserState): ParserState {
     // CASO RECURSIVO
-
-    val list_word_recursive = listOf(MatchType(TokenType.PALAVRAS), MatchFun(::rel_line))
-    val list_word_recursive_match = checkMatches(list_word_recursive, state)
-
-    if (list_word_recursive_match.success()) {
-        return list_word_recursive_match
-    }
-    val list_line_id = listOf(MatchType(TokenType.IDENTIFICADORES), MatchFun(::rel_line))
-    val list_line_id_match = checkMatches(list_line_id, state)
-
-    if (list_line_id_match.success()) {
-        return list_line_id_match
+    val list_line_idw = listOf(
+        MatchOr(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS)),
+        MatchFun(::rel_line)
+    )
+    val list_line_idw_match = checkMatches(list_line_idw, state)
+    if (list_line_idw_match.success()) {
+        return list_line_idw_match
     }
 
     val list_rel_parentese_recursive =
@@ -191,18 +186,11 @@ fun rel(state: ParserState): ParserState {
     }
     // NÃO RECURSIVO
 
-    val list_word = listOf(MatchType(TokenType.PALAVRAS))
-    val list_word_match = checkMatches(list_word, state)
+    val list_idw = MatchOr(MatchType(TokenType.PALAVRAS), MatchType(TokenType.IDENTIFICADORES))
+    val list_idw_match = list_idw.match(state)
 
-    if (list_word_match.success()) {
-        return list_word_match
-    }
-
-    val list_id = listOf(MatchType(TokenType.IDENTIFICADORES))
-    val list_id_match = checkMatches(list_id, state)
-
-    if (list_id_match.success()) {
-        return list_id_match
+    if (list_idw_match.success()) {
+        return list_idw_match
     }
 
     val list_rel_parentese = listOf(MatchString("("), MatchFun(::rel), MatchString(")"))
@@ -294,7 +282,6 @@ fun ret(state: ParserState): ParserState {
 // <LISTC> -> <CMD> | <CMD><LISTC>
 fun listc(state: ParserState): ParserState {
     return state
-    return returnByState(state)
 }
 
 // DEFINIÇÃO
