@@ -80,13 +80,16 @@ class MatchFun(val func: (ParserState) -> ParserState): MatchParser {
     }
 }
 
-class MatchOr(val m1: MatchParser, val m2: MatchParser): MatchParser {
+class MatchOr(val ms: List<MatchParser>): MatchParser {
     override fun match(state: ParserState): ParserState {
-        val m1_result = m1.match(state)
-        if (m1_result.success()) {
-            return m1_result
+        var result = state
+        for (m in ms) {
+            result = m.match(state)
+            if (result.success()) {
+                return result
+            }
         }
-        return m2.match(state)
+        return result
     }
 }
 

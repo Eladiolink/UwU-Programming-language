@@ -38,7 +38,7 @@ fun prog(state: ParserState): ParserState {
                     MatchString("program"),
                     MatchType(TokenType.IDENTIFICADORES),
                     MatchString(";"),
-                    MatchFun(::if_stmt)
+                    MatchFun(::listc)
             )
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
@@ -122,6 +122,30 @@ fun type(state: ParserState): ParserState {
     )
 }
 
+// DEFINIÇÃO DE PRODUÇÃO
+// <LISTC> -> <CMD> | <CMD><LISTC>
+fun listc(state: ParserState): ParserState {
+    val cmds = listOf(MatchFun(::cmd), MatchFun(::listc))
+    val cmds_match = checkMatches(cmds, state)
+    if (cmds_match.success()) {
+        return cmds_match
+    }
+    return cmd(state)
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// <CMD> -> <DEC>; | <IF> | <LOOP> | <CALL>; | <RET>;
+fun cmd(state: ParserState): ParserState {
+    val match = MatchOr(listOf(MatchFun(::if_stmt), MatchFun(::loop)))
+    val match_state = match.match(state)
+    if (match_state.success()) {
+        return match_state
+    }
+    val match_pv = listOf(MatchOr(listOf(MatchFun(::dec), MatchFun(::call), MatchFun(::ret))), MatchString(";"))
+    val match_pv_state = checkMatches(match_pv, state)
+    return match_pv_state
+}
+
 fun endOfFile(state: ParserState): ParserState {
     if (state.tokens.size <= state.lookahead) {
         return state
@@ -153,7 +177,6 @@ fun ari(state: ParserState): ParserState {
 
 // DEFINIÇÃO DE PRODUÇÃO
 // <OP> -> <= | < | > | >= |!= | ==
-
 fun op(state: ParserState): ParserState {
     val match = MatchStrings(listOf("<=", "<", ">", ">=", "!=", "=="))
     val match_state = checkMatches(listOf(match), state)
@@ -169,7 +192,7 @@ fun op(state: ParserState): ParserState {
 fun rel(state: ParserState): ParserState {
     // CASO RECURSIVO
     val list_line_idw = listOf(
-        MatchOr(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS)),
+        MatchOr(listOf(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS))),
         MatchFun(::rel_line)
     )
     val list_line_idw_match = checkMatches(list_line_idw, state)
@@ -186,7 +209,7 @@ fun rel(state: ParserState): ParserState {
     }
     // NÃO RECURSIVO
 
-    val list_idw = MatchOr(MatchType(TokenType.PALAVRAS), MatchType(TokenType.IDENTIFICADORES))
+    val list_idw = MatchOr(listOf(MatchType(TokenType.PALAVRAS), MatchType(TokenType.IDENTIFICADORES)))
     val list_idw_match = list_idw.match(state)
 
     if (list_idw_match.success()) {
@@ -272,16 +295,10 @@ fun ret(state: ParserState): ParserState {
     return checkMatches(
             listOf(
                     MatchString("return"),
-                    MatchOr(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS))
+                    MatchOr(listOf(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS)))
             ),
             state
     )
-}
-
-// DEFINIÇÃO DE PRODUÇÃO
-// <LISTC> -> <CMD> | <CMD><LISTC>
-fun listc(state: ParserState): ParserState {
-    return state
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
