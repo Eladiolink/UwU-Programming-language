@@ -38,7 +38,7 @@ fun prog(state: ParserState): ParserState {
                     MatchString("program"),
                     MatchType(TokenType.IDENTIFICADORES),
                     MatchString(";"),
-                    MatchFun(::listc)
+                    MatchFun(::listf)
             )
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
@@ -50,6 +50,34 @@ fun prog(state: ParserState): ParserState {
     } else {
         return complete_prog_match
     }
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// LISTF -> <FUN> | <FUN><LISTF>
+fun listf(state: ParserState): ParserState {
+    val funs = listOf(MatchFun(::fun_stmt), MatchFun(::listf))
+    val funs_match = checkMatches(funs, state)
+    if (funs_match.success()) {
+        return funs_match
+    }
+    return fun_stmt(state)
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// FUN -> <TYPE> <ID> (input!!<ARGS>) {<LISTC>}
+fun fun_stmt(state: ParserState): ParserState {
+    return checkMatches(listOf(
+        MatchFun(::type),
+        MatchType(TokenType.IDENTIFICADORES),
+        MatchString("("),
+        MatchString("input"),
+        MatchString("!!"),
+        MatchFun(::args),
+        MatchString(")"),
+        MatchString("{"),
+        MatchFun(::listc),
+        MatchString("}")
+    ), state)
 }
 
 // DEFINIÇÃO DE PRODUÇÃO

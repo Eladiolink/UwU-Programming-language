@@ -1,11 +1,17 @@
 program hello;
 
-if( 12!=jb){
-    while ( 1 == 1) {
-        fun(yy);
-    }
-} else {
-    int xy = 10;
-    return xy;
+string createStr(input!!) {
+    return "Hello World";
 }
-int hello = "Hello World!";
+
+int main(input!!int argc, string args) {
+    if (argc > 0) {
+        createStr();
+        int result = 1;
+    } else {
+        string str = "Hello World";
+        int result = 0;
+    }
+    println(str);
+    return result;
+}
