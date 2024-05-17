@@ -3,6 +3,7 @@ package compiler.parser
 import compiler.parserTools.*
 import compiler.symbolTable.*
 import compiler.token.*
+import kotlin.io.println
 
 fun run(tokens: List<Token>, table: SymbolTable): Result<Int> {
     val useful_tokens =
@@ -37,7 +38,7 @@ fun prog(state: ParserState): ParserState {
                     MatchString("program"),
                     MatchType(TokenType.IDENTIFICADORES),
                     MatchString(";"),
-                    MatchFun(::ret)
+                    MatchFun(::if_stmt)
             )
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
@@ -166,10 +167,44 @@ fun op(state: ParserState): ParserState {
 // DEFINIÇÃO DE PRODUÇÃO
 // <REL> -> <WORD> | <ID> | (<REL>) | <WORD><REL>' | <ID><REL>' | (<REL>)<REL>'
 fun rel(state: ParserState): ParserState {
+    // CASO RECURSIVO
+    val list_line_idw = listOf(
+        MatchOr(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS)),
+        MatchFun(::rel_line)
+    )
+    val list_line_idw_match = checkMatches(list_line_idw, state)
+    if (list_line_idw_match.success()) {
+        return list_line_idw_match
+    }
+
+    val list_rel_parentese_recursive =
+            listOf(MatchString("("), MatchFun(::rel), MatchString(")"), MatchFun(::rel_line))
+    val list_rel_parentese_recursive_match = checkMatches(list_rel_parentese_recursive, state)
+
+    if (list_rel_parentese_recursive_match.success()) {
+        return list_rel_parentese_recursive_match
+    }
+    // NÃO RECURSIVO
+
+    val list_idw = MatchOr(MatchType(TokenType.PALAVRAS), MatchType(TokenType.IDENTIFICADORES))
+    val list_idw_match = list_idw.match(state)
+
+    if (list_idw_match.success()) {
+        return list_idw_match
+    }
+
+    val list_rel_parentese = listOf(MatchString("("), MatchFun(::rel), MatchString(")"))
+    val list_rel_parentese_match = checkMatches(list_rel_parentese, state)
+
+    if (list_rel_parentese_match.success()) {
+        return list_rel_parentese_match
+    }
 
     if (!state.hasToken()) {
         return state.errorNew(
-                Throwable("É esperado operador aritmético, no entanto, o arquivo finalizou")
+                Throwable(
+                        "É esperado uma operação de relação válida, no entanto, o arquivo finalizou"
+                )
         )
     }
     val token = state.next()
@@ -184,28 +219,38 @@ fun rel(state: ParserState): ParserState {
 // <REL>' -> <OP><REL> | <OP><REL><REL>'
 fun rel_line(state: ParserState): ParserState {
 
-    if (!state.hasToken()) {
-        return state.errorNew(
-                Throwable("É esperado operador aritmético, no entanto, o arquivo finalizou")
-        )
+    val list_op_recursive = listOf(MatchFun(::op), MatchFun(::rel), MatchFun(::rel_line))
+    val list_op_recursive_match = checkMatches(list_op_recursive, state)
+
+    if (list_op_recursive_match.success()) {
+        return list_op_recursive_match
     }
-    val token = state.next()
-    return state.errorNew(
-            Throwable(
-                    "Na linha ${token.getLineNumber()} é esperado operador aritmético, ao invés de ${token.tokenStr}."
-            )
-    )
+
+    val list_op = listOf(MatchFun(::op), MatchFun(::rel))
+    val list_op_match = checkMatches(list_op, state)
+
+    if (list_op_match.success()) {
+        return list_op_match
+    }
+    return returnByState(state)
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
 // CALL -> IDENT() | IDENT(LID)
 fun call(state: ParserState): ParserState {
-    val no_arg_call = listOf(MatchType(TokenType.IDENTIFICADORES), MatchString("("), MatchString(")"))
+    val no_arg_call =
+            listOf(MatchType(TokenType.IDENTIFICADORES), MatchString("("), MatchString(")"))
     val no_arg_match = checkMatches(no_arg_call, state)
     if (no_arg_match.success()) {
         return no_arg_match
     }
-    val args_call = listOf(MatchType(TokenType.IDENTIFICADORES), MatchString("("), MatchFun(::lid), MatchString(")"))
+    val args_call =
+            listOf(
+                    MatchType(TokenType.IDENTIFICADORES),
+                    MatchString("("),
+                    MatchFun(::lid),
+                    MatchString(")")
+            )
     return checkMatches(args_call, state)
 }
 
@@ -224,10 +269,81 @@ fun lid(state: ParserState): ParserState {
 // DEFINIÇÃO DE PRODUÇÃO
 // RET -> RETURN IDENT | RETURN WORD
 fun ret(state: ParserState): ParserState {
-    return checkMatches(listOf(
-        MatchString("return"),
-        MatchOr(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS))
-    ), state)
+    return checkMatches(
+            listOf(
+                    MatchString("return"),
+                    MatchOr(MatchType(TokenType.IDENTIFICADORES), MatchType(TokenType.PALAVRAS))
+            ),
+            state
+    )
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// <LISTC> -> <CMD> | <CMD><LISTC>
+fun listc(state: ParserState): ParserState {
+    return state
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// <LOOP> -> while(<REL>){<LISTC>}
+fun loop(state: ParserState): ParserState {
+
+    val list_while =
+            listOf(
+                    MatchString("while"),
+                    MatchString("("),
+                    MatchFun(::rel),
+                    MatchString(")"),
+                    MatchString("{"),
+                    MatchFun(::listc),
+                    MatchString("}")
+            )
+    val list_while_match = checkMatches(list_while, state)
+    if (list_while_match.success()) {
+        return list_while_match
+    }
+
+    return returnByState(state)
+}
+
+// DEFINIÇÃO DE PRODUÇÃO
+// IF -> if(<REL>){<LISTC>} | if(<REL>){<LISTC>}else{<LISTC>}
+fun if_stmt(state: ParserState): ParserState {
+    val list_if_else =
+            listOf(
+                    MatchString("if"),
+                    MatchString("("),
+                    MatchFun(::rel),
+                    MatchString(")"),
+                    MatchString("{"),
+                    MatchFun(::listc),
+                    MatchString("}"),
+                    MatchString("else"),
+                    MatchString("{"),
+                    MatchFun(::listc),
+                    MatchString("}")
+            )
+    val list_if_else_match = checkMatches(list_if_else, state)
+    if (list_if_else_match.success()) {
+        return list_if_else_match
+    }
+
+    val list_if =
+            listOf(
+                    MatchString("if"),
+                    MatchString("("),
+                    MatchFun(::rel),
+                    MatchString(")"),
+                    MatchString("{"),
+                    MatchFun(::listc),
+                    MatchString("}")
+            )
+    val list_if_match = checkMatches(list_if, state)
+    if (list_if_match.success()) {
+        return list_if_match
+    }
+
+    return returnByState(state)
 }
 
 fun returnByState(state: ParserState): ParserState {
