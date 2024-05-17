@@ -1,3 +1,17 @@
 program hello;
 
-if( 12!=jb){}
+string createStr(input!!) {
+    return "Hello World";
+}
+
+int main(input!!int argc, string args) {
+    if (argc > 0) {
+        createStr();
+        int result = 1;
+    } else {
+        string str = "Hello World";
+        int result = 0;
+    }
+    println(str);
+    return result;
+}
