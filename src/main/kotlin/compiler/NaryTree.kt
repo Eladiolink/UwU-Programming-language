@@ -1,16 +1,14 @@
-class NaryTreeNode<T>(val value: T) {
-  val children: MutableList<NaryTreeNode<T>> = mutableListOf()
 
-  fun addChild(child: NaryTreeNode<T>) {
-    children.add(child)
-  }
+package compiler.naryTree
 
-  fun removeChild(child: NaryTreeNode<T>): Boolean {
-    return children.remove(child)
+data class NaryTreeNode<T>(val value: T, val children: List<NaryTreeNode<T>>) {
+  override fun toString(): String {
+      return "NaryTree(" + value.toString() + ", children=" + children.toString() + ")"
+
   }
 }
 
-class NaryTree<T>(val root: NaryTreeNode<T>) {
+data class NaryTree<T>(val root: NaryTreeNode<T>) {
   fun find(value: T): NaryTreeNode<T>? {
     return findRecursive(root, value)
   }
