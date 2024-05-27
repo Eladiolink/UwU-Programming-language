@@ -3,6 +3,7 @@ package compiler
 import java.io.File
 import kotlin.Result
 import kotlin.system.exitProcess
+import compiler.exceptions.SemPontoVirgula
 
 fun main(args: Array<String>) {
     if (args.isNullOrEmpty()) exitErro("Nenhum arquivo informado!", -1)
@@ -14,6 +15,7 @@ fun main(args: Array<String>) {
 
         val table: compiler.symbolTable.SymbolTable = mutableListOf()
         val tokens = compiler.lexer.run(program, table)
+
         if (tokens.isSuccess) {
             val result = compiler.parser.run(tokens.getOrThrow(), table)
             if (!result.isSuccess) {
