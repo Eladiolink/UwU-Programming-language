@@ -211,8 +211,8 @@ fun op(state: ParserState): ParserState {
     if (match_state.success()) {
         return match_state
     }
-
-    return returnByState(state)
+    val expected = "um operador ('<=', '<', '>', '>=', '!=', '==')"
+    return returnByState(state,expected)
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -283,7 +283,7 @@ fun rel_line(state: ParserState): ParserState {
     if (list_op_match.success()) {
         return list_op_match
     }
-    return returnByState(state)
+    return returnByState(state, "uma relação válida")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -348,7 +348,7 @@ fun loop(state: ParserState): ParserState {
         return list_while_match
     }
 
-    return returnByState(state)
+    return returnByState(state,"uma declaração while válida")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -388,19 +388,19 @@ fun if_stmt(state: ParserState): ParserState {
         return list_if_match
     }
 
-    return returnByState(state)
+    return returnByState(state,"um if-else válido")
 }
 
-fun returnByState(state: ParserState): ParserState {
+fun returnByState(state: ParserState, expected: String): ParserState {
     if (!state.hasToken()) {
         return state.errorNew(
-                Throwable("É esperado operador aritmético, no entanto, o arquivo finalizou")
+                Throwable("É esperado $expected, no entanto, o arquivo finalizou")
         )
     }
     val token = state.next()
     return state.errorNew(
             Throwable(
-                    "Na linha ${token.getLineNumber()} é esperado operador aritmético, ao invés de ${token.tokenStr}."
+                    "Na linha ${token.getLineNumber()} é esperado $expected, ao invés de ${token.tokenStr}."
             )
     )
 }
