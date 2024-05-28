@@ -43,7 +43,8 @@ fun prog(state: ParserState): ParserState {
     val complete_prog_match = checkMatches(complete_prog, state)
     if (complete_prog_match.success()) {
         if (complete_prog_match.lookahead < complete_prog_match.tokens.size) {
-            return state.errorNew(Throwable())
+            val msg = "É esperado definição de função na linha ${complete_prog_match.next().getLineNumber()}"
+            return state.errorNew(Throwable(msg))
         } else {
             return complete_prog_match
         }
