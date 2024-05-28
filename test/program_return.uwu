@@ -1,3 +1,7 @@
 program ret;
 
-return 10
+xx dez(input!!) {
+    while (1 == 1) {
+        return 10;
+    }
+}
