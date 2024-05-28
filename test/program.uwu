@@ -12,6 +12,7 @@ int main(input!!int argc, string args) {
         string str = "Hello World";
         int result = 0;
     }
+    
     println(str);
     return result;
 }

@@ -42,7 +42,8 @@ fun prog(state: ParserState): ParserState {
     val complete_prog_match = checkMatches(complete_prog, state, NodeType.PROG)
     if (complete_prog_match.success()) {
         if (complete_prog_match.lookahead < complete_prog_match.tokens.size) {
-            return state.errorNew(Throwable())
+            val msg = "É esperado definição de função na linha ${complete_prog_match.next().getLineNumber()}"
+            return state.errorNew(Throwable(msg))
         } else {
             return complete_prog_match
         }
@@ -138,17 +139,7 @@ fun type(state: ParserState): ParserState {
     if (match_state.success()) {
         return match_state
     }
-    if (!state.hasToken()) {
-        return state.errorNew(
-                Throwable("É esperado o nome do tipo, no entanto, o arquivo finalizou")
-        )
-    }
-    val token = state.next()
-    return state.errorNew(
-            Throwable(
-                    "Na linha ${token.getLineNumber()} é esperado o nome do tipo, ao invés de ${token.tokenStr}."
-            )
-    )
+    return returnByState(state, "nome do tipo")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -191,17 +182,7 @@ fun ari(state: ParserState): ParserState {
     if (match_state.success()) {
         return match_state
     }
-    if (!state.hasToken()) {
-        return state.errorNew(
-                Throwable("É esperado operador aritmético, no entanto, o arquivo finalizou")
-        )
-    }
-    val token = state.next()
-    return state.errorNew(
-            Throwable(
-                    "Na linha ${token.getLineNumber()} é esperado operador aritmético, ao invés de ${token.tokenStr}."
-            )
-    )
+    return returnByState(match_state, "operador aritmético")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -212,8 +193,8 @@ fun op(state: ParserState): ParserState {
     if (match_state.success()) {
         return match_state
     }
-
-    return returnByState(state)
+    val expected = "um operador ('<=', '<', '>', '>=', '!=', '==')"
+    return returnByState(state, expected)
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -251,20 +232,7 @@ fun rel(state: ParserState): ParserState {
     if (list_rel_parentese_match.success()) {
         return list_rel_parentese_match
     }
-
-    if (!state.hasToken()) {
-        return state.errorNew(
-                Throwable(
-                        "É esperado uma operação de relação válida, no entanto, o arquivo finalizou"
-                )
-        )
-    }
-    val token = state.next()
-    return state.errorNew(
-            Throwable(
-                    "Na linha ${token.getLineNumber()} é esperado operador aritmético, ao invés de ${token.tokenStr}."
-            )
-    )
+    return returnByState(state, "uma operação de relação")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -284,7 +252,7 @@ fun rel_line(state: ParserState): ParserState {
     if (list_op_match.success()) {
         return list_op_match
     }
-    return returnByState(state)
+    return returnByState(state, "uma relação válida")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -350,7 +318,7 @@ fun loop(state: ParserState): ParserState {
         return list_while_match
     }
 
-    return returnByState(state)
+    return returnByState(state, "uma declaração while válida")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -390,19 +358,19 @@ fun if_stmt(state: ParserState): ParserState {
         return list_if_match
     }
 
-    return returnByState(state)
+    return returnByState(state, "um if-else válido")
 }
 
-fun returnByState(state: ParserState): ParserState {
+fun returnByState(state: ParserState, expected: String): ParserState {
     if (!state.hasToken()) {
         return state.errorNew(
-                Throwable("É esperado operador aritmético, no entanto, o arquivo finalizou")
+                Throwable("É esperado $expected, no entanto, o arquivo finalizou")
         )
     }
     val token = state.next()
     return state.errorNew(
             Throwable(
-                    "Na linha ${token.getLineNumber()} é esperado operador aritmético, ao invés de ${token.tokenStr}."
+                    "Na linha ${token.getLineNumber()} é esperado $expected, ao invés de ${token.tokenStr}."
             )
     )
 }
