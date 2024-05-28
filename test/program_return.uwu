@@ -1,3 +1,5 @@
 program ret;
 
-return 10
+string createStr(input!!) {
+    return 10;
+}
