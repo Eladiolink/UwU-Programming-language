@@ -1,22 +1,56 @@
 package compiler.parserTools
 
 import compiler.token.*
+import compiler.naryTree.*
+
+
+enum class NodeType {
+    TERMINAL,
+    // -- NO TERMINAL SYMBOLS
+    PROG,
+    LISTF,
+    FUN,
+    TYPE,
+    ARGS,
+    LISTC,
+    CMD,
+    DEC,
+    IF,
+    LOOP,
+    CALL,
+    RET,
+    ARI,
+    REL,
+    REL_LINE,
+    LID,
+    OP
+}
+
+
+data class ParserNode(val type: NodeType, val token: Token?)
+
+typealias AstNode = NaryTreeNode<ParserNode>
 
 data class ParserState(
     val tokens: List<Token>,
-    var lookahead: Int,
-    var error: Throwable?,
+    val lookahead: Int,
+    val error: Throwable?,
+    val node: AstNode?
 ) {
     fun next(): Token {
         return tokens[lookahead]
     }
 
     fun incNew(): ParserState {
-        return ParserState(tokens, lookahead + 1, error)
+        return ParserState(tokens, lookahead + 1, error, node?.copy())
     }
 
     fun errorNew(error_new: Throwable): ParserState {
-        return ParserState(tokens, lookahead, error_new)
+        return ParserState(tokens, lookahead, error_new, null)
+    }
+
+    fun nodeNew(n: AstNode?): ParserState {
+        return ParserState(tokens, lookahead, error, n)
     }
 
     fun hasToken(): Boolean {
@@ -39,7 +73,8 @@ class MatchString(val str: String): MatchParser {
         }
         val token = state.next()
         if (token.tokenStr == str) {
-            return state.incNew()
+            val node_v = ParserNode(NodeType.TERMINAL, token)
+            return ParserState(state.tokens, state.lookahead + 1, null, AstNode(node_v, listOf()))
         } else {
             return state.errorNew(Throwable("Na linha ${token.getLineNumber()} é esperado o token $str, ao invés de ${token.tokenStr}."))
         }
@@ -67,7 +102,8 @@ class MatchType(val type: TokenType): MatchParser {
         }
         val token = state.next()
         if (token.type == type) {
-            return state.incNew()
+            val node_v = ParserNode(NodeType.TERMINAL, token)
+            return ParserState(state.tokens, state.lookahead + 1, null, AstNode(node_v, listOf()))
         } else {
             return state.errorNew(Throwable("Na linha ${token.getLineNumber()} é esperado token do tipo $type, ao invés de ${token.tokenStr}."))
         }
@@ -93,14 +129,36 @@ class MatchOr(val ms: List<MatchParser>): MatchParser {
     }
 }
 
-fun checkMatches(matches: List<MatchParser>, state: ParserState): ParserState {
+fun checkMatches(matches: List<MatchParser>, state: ParserState, type: NodeType): ParserState {
     var s = state
+    val nodes: MutableList<AstNode> = mutableListOf()
     for (match in matches) {
         s = match.match(s)
         if (!s.success()) {
             return s
         }
+        if (s.node != null) {
+            nodes.add(s.node!!)
+        }
     }
-    return s
+    return s.nodeNew(AstNode(ParserNode(type, null), nodes))
+}
+
+fun printTree(t: AstNode?) {
+    println("=== Tree ===")
+    printTreeRec(t, 1)
+}
+
+fun printTreeRec(t: AstNode?, level: Int) {
+    if (t?.value?.type == NodeType.TERMINAL) {
+        println("    ".repeat(level) + "| " + t.value.type + " - " + t.value.token?.tokenStr)
+    } else {
+        println("    ".repeat(level) + "| NON-TERMINAL " + t?.value?.type)
+        if (t != null) {
+            for (n in t.children) {
+                printTreeRec(n, level + 1)
+            }
+        }
+    }
 }
 

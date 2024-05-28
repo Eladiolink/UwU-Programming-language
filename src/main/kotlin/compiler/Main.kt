@@ -15,9 +15,11 @@ fun main(args: Array<String>) {
         val table: compiler.symbolTable.SymbolTable = mutableListOf()
         val tokens = compiler.lexer.run(program, table)
         if (tokens.isSuccess) {
-            val result = compiler.parser.run(tokens.getOrThrow(), table)
-            if (!result.isSuccess) {
-                exitErro(result.exceptionOrNull()?.message ?: "", -1)
+            val ast = compiler.parser.run(tokens.getOrThrow(), table)
+            if (ast.isSuccess) {
+                compiler.parserTools.printTree(ast.getOrThrow())
+            } else {
+                exitErro(ast.exceptionOrNull()?.message ?: "", -1)
             }
         } else {
             exitErro(tokens.exceptionOrNull()?.message ?: "", -1)
