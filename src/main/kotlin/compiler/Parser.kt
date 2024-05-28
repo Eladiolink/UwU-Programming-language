@@ -137,17 +137,7 @@ fun type(state: ParserState): ParserState {
     if (match_state.success()) {
         return match_state
     }
-    if (!state.hasToken()) {
-        return state.errorNew(
-                Throwable("É esperado o nome do tipo, no entanto, o arquivo finalizou")
-        )
-    }
-    val token = state.next()
-    return state.errorNew(
-            Throwable(
-                    "Na linha ${token.getLineNumber()} é esperado o nome do tipo, ao invés de ${token.tokenStr}."
-            )
-    )
+    return returnByState(state, "nome do tipo")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -190,17 +180,7 @@ fun ari(state: ParserState): ParserState {
     if (match_state.success()) {
         return match_state
     }
-    if (!state.hasToken()) {
-        return state.errorNew(
-                Throwable("É esperado operador aritmético, no entanto, o arquivo finalizou")
-        )
-    }
-    val token = state.next()
-    return state.errorNew(
-            Throwable(
-                    "Na linha ${token.getLineNumber()} é esperado operador aritmético, ao invés de ${token.tokenStr}."
-            )
-    )
+    return returnByState(match_state, "operador aritmético")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -212,7 +192,7 @@ fun op(state: ParserState): ParserState {
         return match_state
     }
     val expected = "um operador ('<=', '<', '>', '>=', '!=', '==')"
-    return returnByState(state,expected)
+    return returnByState(state, expected)
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -250,20 +230,7 @@ fun rel(state: ParserState): ParserState {
     if (list_rel_parentese_match.success()) {
         return list_rel_parentese_match
     }
-
-    if (!state.hasToken()) {
-        return state.errorNew(
-                Throwable(
-                        "É esperado uma operação de relação válida, no entanto, o arquivo finalizou"
-                )
-        )
-    }
-    val token = state.next()
-    return state.errorNew(
-            Throwable(
-                    "Na linha ${token.getLineNumber()} é esperado operador aritmético, ao invés de ${token.tokenStr}."
-            )
-    )
+    return returnByState(state, "uma operação de relação")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -348,7 +315,7 @@ fun loop(state: ParserState): ParserState {
         return list_while_match
     }
 
-    return returnByState(state,"uma declaração while válida")
+    return returnByState(state, "uma declaração while válida")
 }
 
 // DEFINIÇÃO DE PRODUÇÃO
@@ -388,7 +355,7 @@ fun if_stmt(state: ParserState): ParserState {
         return list_if_match
     }
 
-    return returnByState(state,"um if-else válido")
+    return returnByState(state, "um if-else válido")
 }
 
 fun returnByState(state: ParserState, expected: String): ParserState {
