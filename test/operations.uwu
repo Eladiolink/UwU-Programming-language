@@ -1,8 +1,6 @@
-while
-int n_one = 1
-int n_five = 5
+program ope;
 
-float sum = n_one + n_five
-
-rational rat = 1|23
+int sum(input!!int x1, float x2) {
+    int result = x1 + x2;
+}
 

@@ -1,7 +1,5 @@
 program ret;
 
-xx dez(input!!) {
-    while (1 == 1) {
-        return 10;
-    }
+string createStr(input!!) {
+    return 10;
 }
