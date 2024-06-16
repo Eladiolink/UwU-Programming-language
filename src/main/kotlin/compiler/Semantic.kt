@@ -32,10 +32,23 @@ fun astLoop(ast: AstNode, table: SymbolTable, func: (AstNode, SymbolTable) -> Th
 
 fun tipaIdentificadores(ast: AstNode, table: SymbolTable): Throwable? {
     if (ast.value.type == NodeType.DEC || ast.value.type == NodeType.ARGS) {
-        printTree(ast)
         val type = getType(ast.children[0].children[0].value.token)
         val ident = ast.children[1].value.token!!
-        ident.getEntry(table)!!.valueType = type!!
+        val entry = ident.getEntry(table)!!
+        entry.valueType = type!!
+        if (ast.value.type == NodeType.DEC) {
+            entry.identificador = IdentificadorType.VARIABLE
+        } else {
+            entry.identificador = IdentificadorType.ARG
+        }
+    }
+    if (ast.value.type == NodeType.FUN) {
+        val ident = ast.children[1].value.token!!
+        ident.getEntry(table)!!.identificador = IdentificadorType.FUNC
+    }
+    if (ast.value.type == NodeType.PROG) {
+        val ident = ast.children[1].value.token!!
+        ident.getEntry(table)!!.identificador = IdentificadorType.PROGRAM
     }
     return null
 }
