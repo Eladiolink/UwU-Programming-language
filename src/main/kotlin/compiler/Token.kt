@@ -1,5 +1,7 @@
 package compiler.token
 
+import compiler.symbolTable.*
+
 enum class TokenType {
     COMENTARIO,
     ESPACO,
@@ -19,6 +21,13 @@ data class Token(
 ) {
     fun getLineNumber(): UInt {
         return this.line
+    }
+
+    fun getEntry(table: SymbolTable): EntrySymbol? {
+        if (reference != null) {
+            return table[reference!!.toInt()]
+        }
+        return null
     }
 }
 

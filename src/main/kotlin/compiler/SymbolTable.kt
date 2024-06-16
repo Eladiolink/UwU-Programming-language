@@ -9,6 +9,6 @@ enum class ValueType {
     VALUE_RACIONAL
 }
 
-data class EntrySymbol(val tokenValue: Any, val valueType: ValueType)
+data class EntrySymbol(val tokenValue: Any, var valueType: ValueType)
 
 typealias SymbolTable = MutableList<EntrySymbol>
