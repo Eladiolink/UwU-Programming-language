@@ -101,9 +101,9 @@ fun funCheck(ast: AstNode, table: SymbolTable, tokens: List<Token>): Throwable? 
     val ident = ast.children[1].value.token!!
     val entry = ident.getEntry(table)!!
 
-    if (entry.identificador == IdentificadorType.FUNC) {
-        val typeFunc = getIndice(tokens, entry.tokenValue)
 
+    if (entry.identificador == IdentificadorType.FUNC) {
+        val typeFunc: ValueType = (table.find { it.tokenValue == entry.tokenValue })!!.valueType
         val tkn = ast.children[ast.children.size - 2]
 
         var t = findLastInserted(tkn, NodeType.DEC)
@@ -212,28 +212,6 @@ fun getType(token: Token?): ValueType? {
         "float" -> ValueType.VALUE_FLOAT
         else -> null
     }
-}
-
-fun getIndice(tokens: List<Token>, token: Any): ValueType? {
-
-    for (indice in tokens.indices) {
-        if (tokens[indice].tokenStr == token) {
-            if (tokens[indice - 2].tokenStr == "string") return ValueType.VALUE_STR
-            if (tokens[indice - 2].tokenStr == "int") return ValueType.VALUE_INT
-            if (tokens[indice - 2].tokenStr == "float") return ValueType.VALUE_FLOAT
-            if (tokens[indice - 2].tokenStr == "char") return ValueType.VALUE_CHAR
-        }
-    }
-
-    return null
-}
-
-fun getSimbolType(token: String): DataType? {
-    if (token.matches(Regex("-?(\\d+)(\\.)(\\d+)"))) return DataType.FLOAT
-    if (token.matches(Regex("-?\\d+"))) return DataType.INT
-    if (token.matches(Regex("'[^']'"))) return DataType.CHAR
-
-    return DataType.STRING
 }
 
 fun findLastInserted(node: AstNode?, type: NodeType): AstNode? {
