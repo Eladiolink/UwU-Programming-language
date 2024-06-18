@@ -26,6 +26,12 @@ enum class NodeType {
     OP
 }
 
+enum class DataType{
+    STRING,
+    INT,
+    FLOAT,
+    CHAR
+}
 
 data class ParserNode(val type: NodeType, val token: Token?)
 
