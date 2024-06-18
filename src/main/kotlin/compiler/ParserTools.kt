@@ -26,7 +26,6 @@ enum class NodeType {
     OP
 }
 
-
 data class ParserNode(val type: NodeType, val token: Token?)
 
 typealias AstNode = NaryTreeNode<ParserNode>

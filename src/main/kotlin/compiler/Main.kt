@@ -19,10 +19,10 @@ fun main(args: Array<String>) {
         if (tokens.isSuccess) {
             val ast = compiler.parser.run(tokens.getOrThrow(), table)
             if (ast.isSuccess) {
-                println(table)
-                val res = compiler.semantic.run(ast.getOrThrow(), table)
-                println(table)
-                println(res)
+                // println(table)
+                val res = compiler.semantic.run(ast.getOrThrow(), table, tokens.getOrThrow())
+                // println(table)
+                // println(res)
             } else {
                 exitErro(ast.exceptionOrNull()?.message ?: "", -1)
             }
