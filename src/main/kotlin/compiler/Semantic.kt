@@ -75,7 +75,6 @@ fun callCheck(ast: AstNode, table: SymbolTable, tokens: List<Token>): Throwable?
         current = tokens[argsIndice+1]
         argsIndice++
     }
-    println(parametsName)
     val inTableOfSymbols = findAllInOrder(ast,table)
     val paramentsCall = mutableListOf<EntrySymbol>()
 
@@ -101,9 +100,8 @@ fun funCheck(ast: AstNode, table: SymbolTable, tokens: List<Token>): Throwable? 
     val ident = ast.children[1].value.token!!
     val entry = ident.getEntry(table)!!
 
-
     if (entry.identificador == IdentificadorType.FUNC) {
-        val typeFunc: ValueType = (table.find { it.tokenValue == entry.tokenValue })!!.valueType
+        val typeFunc: ValueType = entry.valueType
         val tkn = ast.children[ast.children.size - 2]
 
         var t = findLastInserted(tkn, NodeType.DEC)
@@ -139,7 +137,10 @@ fun tipaIdentificadores(ast: AstNode, table: SymbolTable, tokens: List<Token>): 
     }
     if (ast.value.type == NodeType.FUN) {
         val ident = ast.children[1].value.token!!
+        val type = getType(ast.children[0].children[0].value.token)
         val entry = ident.getEntry(table)!!
+        entry.valueType = type!!
+
         if (entry.identificador != null) {
             return Redeclaracao(ident.getLineNumber(), ident.tokenStr)
         }
