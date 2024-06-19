@@ -120,8 +120,37 @@ fun checkSemantica(ast: AstNode, table: SymbolTable): Throwable? {
         NodeType.DEC -> decCheck(ast, table)
         NodeType.FUN -> funCheck(ast, table)
         NodeType.CALL -> callCheck(ast, table)
+        NodeType.LOOP -> relCheck(ast, table)
+        NodeType.IF -> relCheck(ast, table)
         else -> null
     }
+}
+
+fun relCheck(ast: AstNode, table: SymbolTable): Throwable? {
+    val rel_ast = ast.children[2]
+    val ident = findTokensAst(rel_ast, TokenType.IDENTIFICADORES)
+    var ident_type: ValueType? = null
+    if (!ident.isEmpty()) {
+        ident_type = ident[0].getEntry(table)!!.valueType
+        for (i in 1..ident.count() - 1) {
+            if (ident[i].getEntry(table)!!.valueType != ident_type) {
+                return Throwable("Na linha ${ident[i].getLineNumber()}, o identificador ${ident[i].tokenStr} deve ser do tipo $ident_type")
+            }
+        }
+    }
+    val palavras = findTokensAst(rel_ast, TokenType.PALAVRAS)
+    if (!palavras.isEmpty()) {
+        val palavras_type = palavras[0].getEntry(table)!!.valueType
+        if (palavras_type != ident_type) {
+            return Throwable("Na linha ${palavras[0].getLineNumber()}, a palavra ${palavras[0].tokenStr} deve ser do mesmo tipo do identificador ${ident[0].tokenStr}")
+        }
+        for (i in 1..palavras.count() - 1) {
+            if (palavras[i].getEntry(table)!!.valueType != palavras_type) {
+                return Throwable("Na linha ${palavras[i].getLineNumber()}, a palavra ${palavras[i].tokenStr} deve ser do tipo $palavras_type")
+            }
+        }
+    }
+    return null
 }
 
 fun decCheck(ast: AstNode, table: SymbolTable): Throwable? {
