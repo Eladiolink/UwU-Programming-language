@@ -161,3 +161,19 @@ fun printTreeRec(t: AstNode?, level: Int) {
     }
 }
 
+fun findTokensAst(ast: AstNode, type: TokenType): List<Token> {
+    if (ast.value.token != null) {
+        val token = ast.value.token!!
+        if (token.type == type) {
+            return listOf(token)
+        } else {
+            return listOf()
+        }
+    }
+    val tokens: MutableList<Token> = mutableListOf()
+    for (node in ast.children) {
+        tokens.addAll(findTokensAst(node, type))
+    }
+    return tokens
+}
+

@@ -7,13 +7,13 @@ import compiler.parserTools.*
 import compiler.symbolTable.*
 import compiler.token.*
 
-fun run(ast: AstNode, table: SymbolTable, tokens: List<Token>): Result<AstNode> {
-    var err = astLoop(ast, table, tokens, ::tipaIdentificadores)
+fun run(ast: AstNode, table: SymbolTable): Result<AstNode> {
+    var err = astLoop(ast, table, ::tipaIdentificadores)
 
     if (err != null) {
         return Result.failure(err)
     }
-    err = astLoop(ast, table, tokens, ::checkSemantica)
+    err = astLoop(ast, table, ::checkSemantica)
     if (err != null) {
         return Result.failure(err)
     }
@@ -24,79 +24,37 @@ fun run(ast: AstNode, table: SymbolTable, tokens: List<Token>): Result<AstNode> 
 fun astLoop(
         ast: AstNode,
         table: SymbolTable,
-        tokens: List<Token>,
-        func: (AstNode, SymbolTable, List<Token>) -> Throwable?
+        func: (AstNode, SymbolTable) -> Throwable?
 ): Throwable? {
     if (ast.value.type == NodeType.TERMINAL) {
         return null
     }
     for (node in ast.children) {
-        val err = astLoop(node, table, tokens, func)
+        val err = astLoop(node, table, func)
         if (err != null) {
             return err
         }
     }
-    return func(ast, table, tokens)
+    return func(ast, table)
 }
 
-fun callCheck(ast: AstNode, table: SymbolTable, tokens: List<Token>): Throwable? {
+fun callCheck(ast: AstNode, table: SymbolTable): Throwable? {
     val ident = ast.children[0].value.token!!
     val entry = ident.getEntry(table)!!
-
-    var argsIndice = 0
-
-    for(key in tokens.indices){
-        if(tokens[key].tokenStr == entry.tokenValue){
-            if(tokens[key+2].tokenStr == "input"){
-                argsIndice = key+2
-            }
-        }
+    val call_idents = findTokensAst(ast.children[2], TokenType.IDENTIFICADORES)
+    val call_types = call_idents.map { it.getEntry(table)!!.valueType }
+    if (entry.args.size != call_types.size) {
+        return Throwable("A função ${entry.tokenValue} é esperado ${entry.args.size} argumentos, no entanto foram informados ${call_types.size} argumentos.")
     }
-
-
-    var current = tokens[argsIndice]
-    val parametsTypes = mutableListOf<ValueType>()
-    val parametsName = mutableListOf<String>()
-    while(current.tokenStr != ")"){
-        when(current.tokenStr){
-            "int"-> parametsTypes.add(ValueType.VALUE_INT)
-            "float" -> parametsTypes.add(ValueType.VALUE_FLOAT)
-            "char" -> parametsTypes.add(ValueType.VALUE_CHAR)
-            "string"-> parametsTypes.add(ValueType.VALUE_STR)
+    for(key in entry.args.indices){
+        if(entry.args[key] != call_types[key]) {
+            return Throwable("Na função ${entry.tokenValue} o argumento ${call_idents[key].tokenStr} não é do tipo esperado ${entry.args[key]}")
         }
-
-        when(current.tokenStr){
-            "int"-> parametsName.add(tokens[argsIndice+2].tokenStr)
-            "float" -> parametsName.add(tokens[argsIndice+2].tokenStr)
-            "char" -> parametsName.add(tokens[argsIndice+2].tokenStr)
-            "string"-> parametsName.add(tokens[argsIndice+2].tokenStr)
-        }
-        
-        current = tokens[argsIndice+1]
-        argsIndice++
-    }
-    val inTableOfSymbols = findAllInOrder(ast,table)
-    val paramentsCall = mutableListOf<EntrySymbol>()
-
-    for(key in inTableOfSymbols.indices){
-        if(key == 0) continue
-        var token = inTableOfSymbols[key].value.token!!
-        var a = table.find { it.tokenValue == token.tokenStr }!!
-        paramentsCall.add(a)
-    }
-
-    if(parametsTypes.size != paramentsCall.size) 
-        return Throwable("A função ${entry.tokenValue} é esperado ${parametsTypes.size} argumentos, no entanto foram informados ${paramentsCall.size} argumentos.")
-    
-    for(key in paramentsCall.indices){
-        val element = paramentsCall[key].tokenValue
-        if(paramentsCall[key].valueType != parametsTypes[key])
-            return Throwable("Na função ${entry.tokenValue} é esperado ${parametsTypes[key]} em ${parametsName[key]}, no entanto ${element} é ${paramentsCall[key].valueType}.")
     }
     return null
 }
    
-fun funCheck(ast: AstNode, table: SymbolTable, tokens: List<Token>): Throwable? {
+fun funCheck(ast: AstNode, table: SymbolTable): Throwable? {
     val ident = ast.children[1].value.token!!
     val entry = ident.getEntry(table)!!
 
@@ -120,7 +78,7 @@ fun funCheck(ast: AstNode, table: SymbolTable, tokens: List<Token>): Throwable? 
     return null
 }
 
-fun tipaIdentificadores(ast: AstNode, table: SymbolTable, tokens: List<Token>): Throwable? {
+fun tipaIdentificadores(ast: AstNode, table: SymbolTable): Throwable? {
     if (ast.value.type == NodeType.DEC || ast.value.type == NodeType.ARGS) {
         val type = getType(ast.children[0].children[0].value.token)
         val ident = ast.children[1].value.token!!
@@ -145,6 +103,10 @@ fun tipaIdentificadores(ast: AstNode, table: SymbolTable, tokens: List<Token>): 
             return Redeclaracao(ident.getLineNumber(), ident.tokenStr)
         }
         entry.identificador = IdentificadorType.FUNC
+        if (ast.children[5].value.type == NodeType.ARGS) {
+            val types = findTokensAst(ast.children[5], TokenType.RESERVADAS) 
+            entry.args.addAll(types.map{ getType(it)!! })
+        }
     }
     if (ast.value.type == NodeType.PROG) {
         val ident = ast.children[1].value.token!!
@@ -153,11 +115,11 @@ fun tipaIdentificadores(ast: AstNode, table: SymbolTable, tokens: List<Token>): 
     return null
 }
 
-fun checkSemantica(ast: AstNode, table: SymbolTable, tokens: List<Token>): Throwable? {
+fun checkSemantica(ast: AstNode, table: SymbolTable): Throwable? {
     return when (ast.value.type) {
         NodeType.DEC -> decCheck(ast, table)
-        NodeType.FUN -> funCheck(ast, table, tokens)
-        NodeType.CALL -> callCheck(ast, table, tokens)
+        NodeType.FUN -> funCheck(ast, table)
+        NodeType.CALL -> callCheck(ast, table)
         else -> null
     }
 }
@@ -234,32 +196,5 @@ fun findLastInserted(node: AstNode?, type: NodeType): AstNode? {
     }
 
     return lastInserted
-}
-
-fun findAllInOrder(node: AstNode?, table: SymbolTable, result: MutableList<AstNode> = mutableListOf()): List<AstNode> {
-    if (node == null) return result
-
-    val mid = node.children.size / 2
-
-    // Processa os primeiros n/2 filhos
-    for (i in 0 until mid) {
-        findAllInOrder(node.children[i], table, result)
-    }
-
-    // Processa o nó atual
-    val token = node.value.token
-    if (token != null) {
-        val foundSymbol = table.find { it.tokenValue == token.tokenStr }
-        if (foundSymbol != null) {
-            result.add(node)
-        }
-    }
-
-    // Processa os restantes n/2 filhos
-    for (i in mid until node.children.size) {
-        findAllInOrder(node.children[i], table, result)
-    }
-
-    return result
 }
 
