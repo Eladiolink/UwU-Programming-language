@@ -20,8 +20,7 @@ fun main(args: Array<String>) {
             val ast = compiler.parser.run(tokens.getOrThrow(), table)
             if (ast.isSuccess) {
                 // println(table)
-                val res = compiler.semantic.run(ast.getOrThrow(), table, tokens.getOrThrow())
-                // println(table)
+                val res = compiler.semantic.run(ast.getOrThrow(), table)
                 println(res)
             } else {
                 exitErro(ast.exceptionOrNull()?.message ?: "", -1)
