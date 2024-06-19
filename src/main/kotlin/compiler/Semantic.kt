@@ -7,6 +7,8 @@ import compiler.parserTools.*
 import compiler.symbolTable.*
 import compiler.token.*
 
+var countReturn = 0
+
 fun run(ast: AstNode, table: SymbolTable): Result<AstNode> {
     var err = astLoop(ast, table, ::tipaIdentificadores)
 
@@ -16,6 +18,10 @@ fun run(ast: AstNode, table: SymbolTable): Result<AstNode> {
     err = astLoop(ast, table, ::checkSemantica)
     if (err != null) {
         return Result.failure(err)
+    }
+
+    if(countReturn == 0){
+        return Result.failure(Throwable("O programa deve ter pelo menos 1 return"))
     }
 
     return Result.success(ast)
@@ -36,6 +42,11 @@ fun astLoop(
         }
     }
     return func(ast, table)
+}
+
+fun countRET(): Throwable?{
+    countReturn++
+    return null
 }
 
 fun callCheck(ast: AstNode, table: SymbolTable): Throwable? {
@@ -122,6 +133,7 @@ fun checkSemantica(ast: AstNode, table: SymbolTable): Throwable? {
         NodeType.CALL -> callCheck(ast, table)
         NodeType.LOOP -> relCheck(ast, table)
         NodeType.IF -> relCheck(ast, table)
+        NodeType.RET -> countRET()
         else -> null
     }
 }

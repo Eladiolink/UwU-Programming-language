@@ -1,8 +1,8 @@
 program ret;
 
-float raiz(input!!float x1, int x2, float x3) {
+float raiz(input!!float x1, float x2, float x3) {
     if(x1 == x2){
-        int ccafcgv = 12 ;
+        float ccafcgv = 12.12;
     }else{
         float advv = 12.13;
     }
@@ -10,7 +10,7 @@ float raiz(input!!float x1, int x2, float x3) {
 
 int ret(input!!) {
     float test = 25.12;
-    int aa = 12;
+    float aa = 12.13;
     float cc = 23.12;
     raiz(test,aa,cc);
     return 0;
