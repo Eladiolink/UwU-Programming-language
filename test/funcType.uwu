@@ -8,6 +8,12 @@ float raiz(input!!float x1, float x2, float x3) {
     }
 }
 
+float raiz2(input!!float x11, float x21, float x31) {
+    
+        float ccafgv = 12.12;
+   
+}
+
 int ret(input!!) {
     float test = 25.12;
     float aa = 12.13;

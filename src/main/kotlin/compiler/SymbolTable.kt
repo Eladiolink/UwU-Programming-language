@@ -18,6 +18,6 @@ enum class IdentificadorType {
 
 typealias FunArgs = MutableList<ValueType>
 
-data class EntrySymbol(val tokenValue: Any, var valueType: ValueType, var identificador: IdentificadorType? = null, val args: FunArgs = mutableListOf())
+data class EntrySymbol(val tokenValue: Any, var valueType: ValueType, var identificador: IdentificadorType? = null,var  isMountPoint: Boolean = false, val args: FunArgs = mutableListOf())
 
 typealias SymbolTable = MutableList<EntrySymbol>
