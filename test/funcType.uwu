@@ -1,12 +1,22 @@
 program ret;
 
-float raiz(input!!float x1, int x2, float x3) {
-    float ccafcgv = 12.12 ;
+float raiz(input!!float x1, float x2, float x3) {
+    if(x1 == x2){
+        float ccafcgv = 12.12;
+    }else{
+        float advv = 12.13;
+    }
 }
 
-string ret(input!!) {
+float raiz2(input!!float x11, float x21, float x31) {
+    
+        float ccafgv = 12.12;
+   
+}
+
+int ret(input!!) {
     float test = 25.12;
-    int aa = 12;
+    float aa = 12.13;
     float cc = 23.12;
     raiz(test,aa,cc);
     return 0;

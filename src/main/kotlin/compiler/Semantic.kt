@@ -7,8 +7,18 @@ import compiler.parserTools.*
 import compiler.symbolTable.*
 import compiler.token.*
 
+var countReturn = 0
+
 fun run(ast: AstNode, table: SymbolTable): Result<AstNode> {
-    var err = astLoop(ast, table, ::tipaIdentificadores)
+
+    // definir ponto de momtagem
+    var err = defineMountPoint(ast, table)
+
+    if (err != null) {
+        return Result.failure(err)
+    }
+
+    err = astLoop(ast, table, ::tipaIdentificadores)
 
     if (err != null) {
         return Result.failure(err)
@@ -18,7 +28,26 @@ fun run(ast: AstNode, table: SymbolTable): Result<AstNode> {
         return Result.failure(err)
     }
 
+    if (countReturn == 0) {
+        return Result.failure(Throwable("O programa deve ter pelo menos 1 return"))
+    }
+
     return Result.success(ast)
+}
+
+fun defineMountPoint(ast: AstNode, table: SymbolTable): Throwable? {
+    var t = findLastInserted(ast, NodeType.FUN)
+
+    if (t != null) {
+
+        val ident = t.children[1].value.token!!
+        val entry = ident.getEntry(table)!!
+        entry.isMountPoint = true
+        println(entry)
+        return null
+    }
+
+    return Throwable("Não há definição de ponto de montagem")
 }
 
 fun astLoop(
@@ -38,22 +67,31 @@ fun astLoop(
     return func(ast, table)
 }
 
+fun countRET(): Throwable? {
+    countReturn++
+    return null
+}
+
 fun callCheck(ast: AstNode, table: SymbolTable): Throwable? {
     val ident = ast.children[0].value.token!!
     val entry = ident.getEntry(table)!!
     val call_idents = findTokensAst(ast.children[2], TokenType.IDENTIFICADORES)
     val call_types = call_idents.map { it.getEntry(table)!!.valueType }
     if (entry.args.size != call_types.size) {
-        return Throwable("A função ${entry.tokenValue} é esperado ${entry.args.size} argumentos, no entanto foram informados ${call_types.size} argumentos.")
+        return Throwable(
+                "A função ${entry.tokenValue} é esperado ${entry.args.size} argumentos, no entanto foram informados ${call_types.size} argumentos."
+        )
     }
-    for(key in entry.args.indices){
-        if(entry.args[key] != call_types[key]) {
-            return Throwable("Na função ${entry.tokenValue} o argumento ${call_idents[key].tokenStr} não é do tipo esperado ${entry.args[key]}")
+    for (key in entry.args.indices) {
+        if (entry.args[key] != call_types[key]) {
+            return Throwable(
+                    "Na função ${entry.tokenValue} o argumento ${call_idents[key].tokenStr} não é do tipo esperado ${entry.args[key]}"
+            )
         }
     }
     return null
 }
-   
+
 fun funCheck(ast: AstNode, table: SymbolTable): Throwable? {
     val ident = ast.children[1].value.token!!
     val entry = ident.getEntry(table)!!
@@ -104,8 +142,8 @@ fun tipaIdentificadores(ast: AstNode, table: SymbolTable): Throwable? {
         }
         entry.identificador = IdentificadorType.FUNC
         if (ast.children[5].value.type == NodeType.ARGS) {
-            val types = findTokensAst(ast.children[5], TokenType.RESERVADAS) 
-            entry.args.addAll(types.map{ getType(it)!! })
+            val types = findTokensAst(ast.children[5], TokenType.RESERVADAS)
+            entry.args.addAll(types.map { getType(it)!! })
         }
     }
     if (ast.value.type == NodeType.PROG) {
@@ -122,6 +160,7 @@ fun checkSemantica(ast: AstNode, table: SymbolTable): Throwable? {
         NodeType.CALL -> callCheck(ast, table)
         NodeType.LOOP -> relCheck(ast, table)
         NodeType.IF -> relCheck(ast, table)
+        NodeType.RET -> countRET()
         else -> null
     }
 }
@@ -134,7 +173,9 @@ fun relCheck(ast: AstNode, table: SymbolTable): Throwable? {
         ident_type = ident[0].getEntry(table)!!.valueType
         for (i in 1..ident.count() - 1) {
             if (ident[i].getEntry(table)!!.valueType != ident_type) {
-                return Throwable("Na linha ${ident[i].getLineNumber()}, o identificador ${ident[i].tokenStr} deve ser do tipo $ident_type")
+                return Throwable(
+                        "Na linha ${ident[i].getLineNumber()}, o identificador ${ident[i].tokenStr} deve ser do tipo $ident_type"
+                )
             }
         }
     }
@@ -142,11 +183,15 @@ fun relCheck(ast: AstNode, table: SymbolTable): Throwable? {
     if (!palavras.isEmpty()) {
         val palavras_type = palavras[0].getEntry(table)!!.valueType
         if (palavras_type != ident_type) {
-            return Throwable("Na linha ${palavras[0].getLineNumber()}, a palavra ${palavras[0].tokenStr} deve ser do mesmo tipo do identificador ${ident[0].tokenStr}")
+            return Throwable(
+                    "Na linha ${palavras[0].getLineNumber()}, a palavra ${palavras[0].tokenStr} deve ser do mesmo tipo do identificador ${ident[0].tokenStr}"
+            )
         }
         for (i in 1..palavras.count() - 1) {
             if (palavras[i].getEntry(table)!!.valueType != palavras_type) {
-                return Throwable("Na linha ${palavras[i].getLineNumber()}, a palavra ${palavras[i].tokenStr} deve ser do tipo $palavras_type")
+                return Throwable(
+                        "Na linha ${palavras[i].getLineNumber()}, a palavra ${palavras[i].tokenStr} deve ser do tipo $palavras_type"
+                )
             }
         }
     }
@@ -226,4 +271,3 @@ fun findLastInserted(node: AstNode?, type: NodeType): AstNode? {
 
     return lastInserted
 }
-
