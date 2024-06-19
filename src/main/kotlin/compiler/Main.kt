@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
                 // println(table)
                 val res = compiler.semantic.run(ast.getOrThrow(), table, tokens.getOrThrow())
                 // println(table)
-                // println(res)
+                println(res)
             } else {
                 exitErro(ast.exceptionOrNull()?.message ?: "", -1)
             }

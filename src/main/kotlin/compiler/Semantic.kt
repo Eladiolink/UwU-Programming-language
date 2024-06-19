@@ -105,7 +105,7 @@ fun funCheck(ast: AstNode, table: SymbolTable, tokens: List<Token>): Throwable? 
         val tkn = ast.children[ast.children.size - 2]
 
         var t = findLastInserted(tkn, NodeType.DEC)
-
+        
         if (t != null) {
             val element = t.children[t.children.size - 3].value.token!!
             var lineOfTable = table.find { it.tokenValue == element.tokenStr }!!

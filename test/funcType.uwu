@@ -1,10 +1,14 @@
 program ret;
 
 float raiz(input!!float x1, int x2, float x3) {
-    float ccafcgv = 12.12 ;
+    if(x1 == x2){
+        int ccafcgv = 12 ;
+    }else{
+        float advv = 12.13;
+    }
 }
 
-string ret(input!!) {
+int ret(input!!) {
     float test = 25.12;
     int aa = 12;
     float cc = 23.12;
