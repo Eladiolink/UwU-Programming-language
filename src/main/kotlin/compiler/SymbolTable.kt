@@ -31,7 +31,7 @@ fun isVar(entry: EntrySymbol): Boolean {
 }
 
 fun printTable(table: SymbolTable) {
-    println(" ### Tabela de simbolos")
+    println(" === Tabela de simbolos ===")
     for (entry in table) {
         println(" - $entry")
     }

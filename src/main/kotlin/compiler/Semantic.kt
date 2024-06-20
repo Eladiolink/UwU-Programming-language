@@ -36,16 +36,13 @@ fun run(ast: AstNode, table: SymbolTable): Result<AstNode> {
 }
 
 fun defineMountPoint(ast: AstNode, table: SymbolTable): Throwable? {
-    var t = findLastInserted(ast, NodeType.FUN)
-
-    if (t != null) {
-
+    if (ast.children.size > 3) {
+        var t = findLastInListOfProd(ast.children[3], NodeType.LISTF)
         val ident = t.children[1].value.token!!
         val entry = ident.getEntry(table)!!
         entry.isMountPoint = true
         return null
     }
-
     return Throwable("Não há definição de ponto de montagem")
 }
 
@@ -112,18 +109,24 @@ fun funCheck(ast: AstNode, table: SymbolTable): Throwable? {
 
     if (entry.identificador == IdentificadorType.FUNC) {
         val typeFunc: ValueType = entry.valueType
-        val tkn = ast.children[ast.children.size - 2]
-
-        var t = findLastInserted(tkn, NodeType.DEC)
-
-        if (t != null) {
-            val element = t.children[t.children.size - 3].value.token!!
-            var lineOfTable = table.find { it.tokenValue == element.tokenStr }!!
-            if (lineOfTable.valueType != typeFunc) {
+        var commands_index = 7
+        if (!entry.args.isEmpty()) {
+            commands_index = 8
+        }
+        var t = findLastInListOfProd(ast.children[commands_index], NodeType.LISTC)
+        if (t.value.type == NodeType.CMD) {
+            t = t.children[0]
+        }
+        if (t.value.type == NodeType.DEC) {
+            val element = t.children[1].value.token!!
+            val ele_entry = element.getEntry(table)!!
+            if (ele_entry.valueType != typeFunc) {
                 return Throwable(
-                        "A função ${entry.tokenValue} é esperado token do tipo $typeFunc, ao invés de ${lineOfTable.valueType}."
+                    "No final da função ${entry.tokenValue} é esperado declaração com tipo $typeFunc, ao invés de ${ele_entry.valueType}."
                 )
             }
+        } else {
+            return Throwable("A última instrução da função ${ident.tokenStr} deve ser uma declaração de variável")
         }
     }
 
@@ -277,23 +280,3 @@ fun getType(token: Token?): ValueType? {
     }
 }
 
-fun findLastInserted(node: AstNode?, type: NodeType): AstNode? {
-    if (node == null) return null
-
-    var lastInserted: AstNode? = null
-
-    // Primeiro, processa todos os filhos
-    for (child in node.children) {
-        val result = findLastInserted(child, type)
-        if (result != null) {
-            lastInserted = result
-        }
-    }
-
-    // Depois, verifica o nó atual
-    if (node.value.type == type) {
-        lastInserted = node
-    }
-
-    return lastInserted
-}
