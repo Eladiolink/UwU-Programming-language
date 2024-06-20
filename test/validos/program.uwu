@@ -1,18 +1,16 @@
 program hello;
 
 string createStr(input!!) {
-    return "Hello World";
+    string createStr_res = "Hello World";
 }
 
 int main(input!!int argc, string args) {
     if (argc > 0) {
         createStr();
-        int result = 1;
     } else {
         string str = "Hello World";
-        int result = 0;
     }
     
-    println(str);
-    return result;
+    return str;
+    int a1 = 12;
 }

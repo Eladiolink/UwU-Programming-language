@@ -1,0 +1,6 @@
+program ret;
+
+int createStr(input!!) {
+    return 10;
+    int val = 12;
+}
