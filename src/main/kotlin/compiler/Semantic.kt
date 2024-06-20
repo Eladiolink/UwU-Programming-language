@@ -36,17 +36,13 @@ fun run(ast: AstNode, table: SymbolTable): Result<AstNode> {
 }
 
 fun defineMountPoint(ast: AstNode, table: SymbolTable): Throwable? {
-    var t = findLastInserted(ast, NodeType.FUN)
-
-    if (t != null) {
-
+    if (ast.children.size > 3) {
+        var t = findLastInListOfProd(ast.children[3], NodeType.LISTF)
         val ident = t.children[1].value.token!!
         val entry = ident.getEntry(table)!!
         entry.isMountPoint = true
-        println(entry)
         return null
     }
-
     return Throwable("Não há definição de ponto de montagem")
 }
 
@@ -67,14 +63,24 @@ fun astLoop(
     return func(ast, table)
 }
 
-fun countRET(): Throwable? {
+fun retCheck(ast: AstNode, table: SymbolTable): Throwable? {
     countReturn++
+    val token = ast.children[1].value.token!!
+    if (token.type == TokenType.IDENTIFICADORES) {
+        val entry = token.getEntry(table)!!
+        if (!isVar(entry)) {
+            return Throwable("Na linha ${token.getLineNumber()}, o identificador retornado não é uma variável ou argumento")
+        }
+    }
     return null
 }
 
 fun callCheck(ast: AstNode, table: SymbolTable): Throwable? {
     val ident = ast.children[0].value.token!!
     val entry = ident.getEntry(table)!!
+    if (entry.identificador != IdentificadorType.FUNC) {
+        return Throwable("Na linha ${ident.getLineNumber()}, o identificador ${entry.tokenValue} não é uma função.")
+    }
     val call_idents = findTokensAst(ast.children[2], TokenType.IDENTIFICADORES)
     val call_types = call_idents.map { it.getEntry(table)!!.valueType }
     if (entry.args.size != call_types.size) {
@@ -83,9 +89,14 @@ fun callCheck(ast: AstNode, table: SymbolTable): Throwable? {
         )
     }
     for (key in entry.args.indices) {
+        if (!isVar(call_idents[key].getEntry(table)!!)) {
+            return Throwable(
+                "Na chamada da função ${entry.tokenValue} o argumento ${call_idents[key].tokenStr} não é uma variável ou argumento"
+            )
+        }
         if (entry.args[key] != call_types[key]) {
             return Throwable(
-                    "Na função ${entry.tokenValue} o argumento ${call_idents[key].tokenStr} não é do tipo esperado ${entry.args[key]}"
+                    "Na chamada da função ${entry.tokenValue} o argumento ${call_idents[key].tokenStr} não é do tipo esperado ${entry.args[key]}"
             )
         }
     }
@@ -98,18 +109,24 @@ fun funCheck(ast: AstNode, table: SymbolTable): Throwable? {
 
     if (entry.identificador == IdentificadorType.FUNC) {
         val typeFunc: ValueType = entry.valueType
-        val tkn = ast.children[ast.children.size - 2]
-
-        var t = findLastInserted(tkn, NodeType.DEC)
-
-        if (t != null) {
-            val element = t.children[t.children.size - 3].value.token!!
-            var lineOfTable = table.find { it.tokenValue == element.tokenStr }!!
-            if (lineOfTable.valueType != typeFunc) {
+        var commands_index = 7
+        if (!entry.args.isEmpty()) {
+            commands_index = 8
+        }
+        var t = findLastInListOfProd(ast.children[commands_index], NodeType.LISTC)
+        if (t.value.type == NodeType.CMD) {
+            t = t.children[0]
+        }
+        if (t.value.type == NodeType.DEC) {
+            val element = t.children[1].value.token!!
+            val ele_entry = element.getEntry(table)!!
+            if (ele_entry.valueType != typeFunc) {
                 return Throwable(
-                        "A função ${entry.tokenValue} é esperado token do tipo $typeFunc, ao invés de ${lineOfTable.valueType}."
+                    "No final da função ${entry.tokenValue} é esperado declaração com tipo $typeFunc, ao invés de ${ele_entry.valueType}."
                 )
             }
+        } else {
+            return Throwable("A última instrução da função ${ident.tokenStr} deve ser uma declaração de variável")
         }
     }
 
@@ -160,7 +177,7 @@ fun checkSemantica(ast: AstNode, table: SymbolTable): Throwable? {
         NodeType.CALL -> callCheck(ast, table)
         NodeType.LOOP -> relCheck(ast, table)
         NodeType.IF -> relCheck(ast, table)
-        NodeType.RET -> countRET()
+        NodeType.RET -> retCheck(ast, table)
         else -> null
     }
 }
@@ -171,7 +188,13 @@ fun relCheck(ast: AstNode, table: SymbolTable): Throwable? {
     var ident_type: ValueType? = null
     if (!ident.isEmpty()) {
         ident_type = ident[0].getEntry(table)!!.valueType
+        if (!isVar(ident[0].getEntry(table)!!)) {
+            return Throwable("Na linha ${ident[0].getLineNumber()}, o identificador ${ident[0].tokenStr} não é uma variável ou argumento")
+        }
         for (i in 1..ident.count() - 1) {
+            if (!isVar(ident[i].getEntry(table)!!)) {
+                return Throwable("Na linha ${ident[i].getLineNumber()}, o identificador ${ident[i].tokenStr} não é uma variável ou argumento")
+            }
             if (ident[i].getEntry(table)!!.valueType != ident_type) {
                 return Throwable(
                         "Na linha ${ident[i].getLineNumber()}, o identificador ${ident[i].tokenStr} deve ser do tipo $ident_type"
@@ -225,10 +248,16 @@ fun decAriCheck(ast: AstNode, table: SymbolTable, dec_type: ValueType): Throwabl
     val op1_type = op1.getEntry(table)!!.valueType
     val op2 = ast.children[5].value.token!!
     val op2_type = op2.getEntry(table)!!.valueType
+    if (!isVar(op1.getEntry(table)!!)) {
+        return Throwable("Na linha ${op1.getLineNumber()}, o identificador ${op1.tokenStr} não é uma variável ou argumento")
+    }
     if (dec_type != op1_type) {
         return Throwable(
                 "Na linha ${op1.getLineNumber()} é esperado token do tipo $dec_type, ao invés de ${op1.tokenStr}."
         )
+    }
+    if (!isVar(op2.getEntry(table)!!)) {
+        return Throwable("Na linha ${op2.getLineNumber()}, o identificador ${op2.tokenStr} não é uma variável ou argumento")
     }
     if (dec_type != op2_type) {
         return Throwable(
@@ -251,23 +280,3 @@ fun getType(token: Token?): ValueType? {
     }
 }
 
-fun findLastInserted(node: AstNode?, type: NodeType): AstNode? {
-    if (node == null) return null
-
-    var lastInserted: AstNode? = null
-
-    // Primeiro, processa todos os filhos
-    for (child in node.children) {
-        val result = findLastInserted(child, type)
-        if (result != null) {
-            lastInserted = result
-        }
-    }
-
-    // Depois, verifica o nó atual
-    if (node.value.type == type) {
-        lastInserted = node
-    }
-
-    return lastInserted
-}

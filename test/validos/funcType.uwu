@@ -1,4 +1,4 @@
-program ret;
+program funcType;
 
 float raiz(input!!float x1, float x2, float x3) {
     if(x1 == x2){
@@ -6,6 +6,8 @@ float raiz(input!!float x1, float x2, float x3) {
     }else{
         float advv = 12.13;
     }
+
+    float xc = 12.34;
 }
 
 float raiz2(input!!float x11, float x21, float x31) {
@@ -14,10 +16,12 @@ float raiz2(input!!float x11, float x21, float x31) {
    
 }
 
-int ret(input!!) {
+float ret(input!!) {
     float test = 25.12;
     float aa = 12.13;
     float cc = 23.12;
     raiz(test,aa,cc);
     return 0;
+
+    float dd = 12.98;
 }

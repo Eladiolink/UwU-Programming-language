@@ -168,7 +168,7 @@ fun cmd(state: ParserState): ParserState {
 
 fun endOfFile(state: ParserState): ParserState {
     if (state.tokens.size <= state.lookahead) {
-        return state
+        return state.nodeNew(null)
     } else {
         return state.errorNew(Throwable())
     }

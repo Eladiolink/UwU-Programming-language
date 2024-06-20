@@ -21,3 +21,18 @@ typealias FunArgs = MutableList<ValueType>
 data class EntrySymbol(val tokenValue: Any, var valueType: ValueType, var identificador: IdentificadorType? = null,var  isMountPoint: Boolean = false, val args: FunArgs = mutableListOf())
 
 typealias SymbolTable = MutableList<EntrySymbol>
+
+fun isVar(entry: EntrySymbol): Boolean {
+    if (entry.identificador == IdentificadorType.ARG || entry.identificador == IdentificadorType.VARIABLE) {
+        return true
+    } else {
+        return false
+    }
+}
+
+fun printTable(table: SymbolTable) {
+    println(" === Tabela de simbolos ===")
+    for (entry in table) {
+        println(" - $entry")
+    }
+}

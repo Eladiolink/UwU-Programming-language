@@ -163,7 +163,7 @@ fun printTreeRec(t: AstNode?, level: Int) {
 
 fun findTokensAst(ast: AstNode, type: TokenType): List<Token> {
     if (ast.value.token != null) {
-        val token = ast.value.token!!
+        val token = ast.value.token
         if (token.type == type) {
             return listOf(token)
         } else {
@@ -177,3 +177,15 @@ fun findTokensAst(ast: AstNode, type: TokenType): List<Token> {
     return tokens
 }
 
+fun findLastInListOfProd(ast: AstNode, producao: NodeType): AstNode {
+    // Em produções da forma "LISTX -> X | X LISTX" obtém o último X de LISTX
+    if (ast.value.type != producao) {
+        return ast
+    }
+    val last = ast.children.last()
+    if (last.value.type == producao) {
+        return findLastInListOfProd(last, producao)
+    } else {
+        return last
+    }
+}

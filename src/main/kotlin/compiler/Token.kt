@@ -25,7 +25,7 @@ data class Token(
 
     fun getEntry(table: SymbolTable): EntrySymbol? {
         if (reference != null) {
-            return table[reference!!.toInt()]
+            return table[reference.toInt()]
         }
         return null
     }
