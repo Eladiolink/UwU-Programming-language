@@ -22,6 +22,7 @@ fun main(args: Array<String>) {
                 // println(table)
                 val res = compiler.semantic.run(ast.getOrThrow(), table)
                 println(res)
+                //compiler.symbolTable.printTable(table)
             } else {
                 exitErro(ast.exceptionOrNull()?.message ?: "", -1)
             }
