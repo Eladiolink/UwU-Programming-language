@@ -1,9 +1,10 @@
 # UwU Programming Language
 
-```sh
-# To build
-$ ./gradlew build
+### Como rodar compilador
 
-# To run
-$./gradlew run --args="test.uwu"
+- Instalar o gerenciador de pacotes gradle 
+
+- Executar o comando
+```sh
+$ make run FILE=<caminho do codigo fonte>
 ```
